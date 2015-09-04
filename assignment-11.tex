@@ -1,0 +1,159 @@
+% Created 2015-09-04 Fri 18:27
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\tolerance=1000
+\usepackage[utf8]{inputenc}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{commath}
+\usepackage{tikz}
+\usetikzlibrary{shapes,backgrounds}
+\usepackage{marginnote}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{enumerate}
+\hypersetup{urlcolor=blue}
+\hypersetup{colorlinks,urlcolor=blue}
+\setlength{\parskip}{16pt plus 2pt minus 2pt}
+\renewcommand{\arraystretch}{1.6}
+\author{Oleg Sivokon}
+\date{\textit{<2015-09-04 Fri>}}
+\title{Assignment 11, Authomata Theory}
+\hypersetup{
+ pdfauthor={Oleg Sivokon},
+ pdftitle={Assignment 11, Authomata Theory},
+ pdfkeywords={Automata Theory, Formal Languages, Assignment},
+ pdfsubject={First assignment in the course 20440 Automata and Formal Languages},
+ pdfcreator={Emacs 25.0.50.1 (Org mode 8.3beta)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\definecolor{codebg}{rgb}{0.96,0.99,0.8}
+\definecolor{codestr}{rgb}{0.46,0.09,0.2}
+\lstset{%
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\scriptsize,
+  breakatwhitespace=false,
+  breaklines=false,
+  captionpos=b,
+  framexleftmargin=10pt,
+  xleftmargin=10pt,
+  framerule=0pt,
+  frame=tb,
+  keepspaces=true,
+  keywordstyle=\color{blue},
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  stringstyle=\color{codestr},
+  tabsize=2
+}
+\lstnewenvironment{maxima}{%
+  \lstset{%
+    backgroundcolor=\color{codebg},
+    escapeinside={(*@}{@*)},
+    aboveskip=20pt,
+    captionpos=b,
+    label=,
+    caption=,
+    showstringspaces=false,
+    frame=single,
+    framerule=0pt,
+    basicstyle=\ttfamily\scriptsize,
+    columns=fixed}}{}
+}
+\makeatletter
+\newcommand{\verbatimfont}[1]{\renewcommand{\verbatim@font}{\ttfamily#1}}
+\makeatother
+\verbatimfont{\small}%
+\clearpage
+
+\section{Problems}
+\label{sec:orgheadline4}
+
+\subsection{Problem 1}
+\label{sec:orgheadline3}
+Given following languages over the alphabet \(\{a, b\}\)
+\begin{itemize}
+\item \(L_1 = \emptyset\).
+\item \(L_2 = \{\epsilon, aa\}\).
+\item \(L_3 = \{\epsilon, a, aa, ab, abb\}\).
+\item \(L_4 = \{aabb, aabbb, aa, aaa\}\).
+\item \(L_5 = \{\epsilon, b, bbb, abab, abba, aabb\}\).
+\item \(L_6 = \{\epsilon, bbbaa, baba, aaab, aabba, aa\}\).
+\end{itemize}
+
+
+\begin{enumerate}
+\item What are the following languages:
+\begin{itemize}
+\item \(L_4L_4\).
+\item \((L_1 \cup L_2 \cup L_3)^R\).
+\item \(L_3L_1L_6\).
+\end{itemize}
+
+\item Define exponentiation as follows:
+\(L^K = \{x \in L \;|\; \exists y \in K.(\abs{y} = \abs{x})\}\).
+What are the languages \(L_4^{L_5}\) and \(L_6^{L_1}\).
+\end{enumerate}
+
+
+\lstset{language=prolog,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+:- use_module(library(lists)).
+
+concatentated_member(L1, L2, L3) :-
+    member(M1, L1), member(M2, L2),
+    string_concat(M1, M2, L3).
+
+concatentated(L1, L2, L3) :-
+    findall(X, concatentated_member(L1, L2, X), X),
+    list_to_set(X, L3).
+
+assignment_11a :-
+    X = ["aabb", "aabbb", "aa", "aaa"],
+    concatentated(X, X, Y),
+    [First | Rest] = Y,
+    write("$$\\{"),
+    write(First),
+    maplist(format(',\\allowbreak ~s'), Rest),
+    write("\\}$$").
+\end{lstlisting}
+
+\(\{aabbaabb,\allowbreak aabbaabbb,\allowbreak aabbaa,\allowbreak aabbaaa,\allowbreak aabbbaabb,\allowbreak aabbbaabbb,\allowbreak aabbbaa,\allowbreak aabbbaaa,\allowbreak aaaabb,\allowbreak aaaabbb,\allowbreak aaaa,\allowbreak aaaaa,\allowbreak aaaaabb,\allowbreak aaaaabbb,\allowbreak aaaaaa\}\)
+
+\subsubsection{Answer 1}
+\label{sec:orgheadline1}
+\begin{enumerate}
+\item Concatenation of \(L_4\) with itself gives:
+\(L_4L_4 = \{aabbaabb, aabbaabbb, aabbaa,\;\) \(aabbaaa, aabbbaabb,
+       aabbbaa, aabbbaaa, aaaabbb, aaaa, aaaaa, aaaaabb, aaaaabbb\}\)
+\item \((L_1 \cup L_2 \cup L_3)^R = \{\epsilon, a, aa, ba, bba\}\).
+\item \(L_3L_1L_6 = \emptyset\).  This is so because there are no words
+in language \(L_1\) to concatenate with.
+\end{enumerate}
+
+\subsubsection{Answer 2}
+\label{sec:orgheadline2}
+\begin{enumerate}
+\item \(L_4^{L_5} = \{aaa, aabb\}\).
+\item \(L_6^{L_1} = \emptyset\).
+\end{enumerate}
+\end{document}
