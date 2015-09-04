@@ -174,3 +174,45 @@
     2. $L_1 L_3 \cap L_2 L_3 = \{aa\}$.
 
     I.e. both sides of equation are not equal.  This completes the proof.
+
+** Problem 3
+   An equivalence relation over $\Sigma^*$ will be called invariant from
+   right if $\forall z \in \Sigma^*.(xRy \implies xzRyz)$.  Answer for
+   every relation in $\{a, b\}^*$ whether the relation is an equivalence
+   relation and whether it is invariant from right.
+
+   1. $xRy \iff \abs{x} \geq \abs{y}$.
+   2. $xRy \iff (\abs{x} = \abs{y} = 0 \lor x = qz, y = pz, \abs{z} \geq 1)$.
+
+*** Answer 5
+    Total order relation is not symmetric.  Suppose $x = a$ and $y = ab$, then
+    $x \geq y$ but not $y \geq x$.  Since this relation is not an equivalence,
+    it cannot be right invariant either.
+
+*** Answer 6
+    This relation is an equivalence.  It is transitive because whenever
+    $x = qz$, $y = pz$ and $w = vz$, all of the below hold: $xRy$, $yRw$,
+    $xRw$ since they all have the last letter in common.  This also holds
+    trivially in case the length is zero, since $x = y = w = \epsilon$ in
+    that case.
+
+    The relation is reflexive because whenever every string is either
+    empty or its last symbol is equal to itself, i.e. $xRx$ is always true.
+
+    The relation is symmetric because whenever $x = qz$ and $y = pz$ then
+    both $xRy$ and $yRx$ hold (again, becuase $x$ and $y$ have the final
+    letter in common, or are both the empty string).
+
+    The relation is also invariant from the right.  The proof will proceed
+    by induction on the string's length.
+
+    *Base step:* $\epsilon R \epsilon \implies \epsilon z R \epsilon z$ because
+    $R$ is reflexive and $z = \epsilon z$.
+
+    *Inductive step:* suppose the inductive hypotesis $xRy \implies xzRyz$, then
+    suppose we concatenate the same character $c$ to both $x$ and $y$.  This
+    character must be the same by definition of $R$.  Then $xcRyc \implies
+    xczRycz$ because we can simply rename $xc = x_1$ adn $yc = y_1$ and obtain
+    the inductive hypothesis restated using new terms: $x_1Ry_1 \implies
+    x_1zRy_1z$.  This completes the inductive step, and hence the proof is
+    completed.

@@ -1,4 +1,4 @@
-% Created 2015-09-04 Fri 20:00
+% Created 2015-09-04 Fri 20:46
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -86,7 +86,7 @@
 \clearpage
 
 \section{Problems}
-\label{sec:orgheadline7}
+\label{sec:orgheadline10}
 
 \subsection{Problem 1}
 \label{sec:orgheadline3}
@@ -202,4 +202,51 @@ This conjecture isn't generally true.  Suppose \(L_1 = L_3 = \{a\}\) and
 \end{enumerate}
 
 I.e. both sides of equation are not equal.  This completes the proof.
+
+\subsection{Problem 3}
+\label{sec:orgheadline9}
+An equivalence relation over \(\Sigma^*\) will be called invariant from
+right if \(\forall z \in \Sigma^*.(xRy \implies xzRyz)\).  Answer for
+every relation in \(\{a, b\}^*\) whether the relation is an equivalence
+relation and whether it is invariant from right.
+
+\begin{enumerate}
+\item \(xRy \iff \abs{x} \geq \abs{y}\).
+\item \(xRy \iff (\abs{x} = \abs{y} = 0 \lor x = qz, y = pz, \abs{z} \geq 1)\).
+\end{enumerate}
+
+\subsubsection{Answer 5}
+\label{sec:orgheadline7}
+Total order relation is not symmetric.  Suppose \(x = a\) and \(y = ab\), then
+\(x \geq y\) but not \(y \geq x\).  Since this relation is not an equivalence,
+it cannot be right invariant either.
+
+\subsubsection{Answer 6}
+\label{sec:orgheadline8}
+This relation is an equivalence.  It is transitive because whenever
+\(x = qz\), \(y = pz\) and \(w = vz\), all of the below hold: \(xRy\), \(yRw\),
+\(xRw\) since they all have the last letter in common.  This also holds
+trivially in case the length is zero, since \(x = y = w = \epsilon\) in
+that case.
+
+The relation is reflexive because whenever every string is either
+empty or its last symbol is equal to itself, i.e. \(xRx\) is always true.
+
+The relation is symmetric because whenever \(x = qz\) and \(y = pz\) then
+both \(xRy\) and \(yRx\) hold (again, becuase \(x\) and \(y\) have the final
+letter in common, or are both the empty string).
+
+The relation is also invariant from the right.  The proof will proceed
+by induction on the string's length.
+
+\textbf{Base step:} \(\epsilon R \epsilon \implies \epsilon z R \epsilon z\) because
+\(R\) is reflexive and \(z = \epsilon z\).
+
+\textbf{Inductive step:} suppose the inductive hypotesis \(xRy \implies xzRyz\), then
+suppose we concatenate the same character \(c\) to both \(x\) and \(y\).  This
+character must be the same by definition of \(R\).  Then \(xcRyc \implies
+    xczRycz\) because we can simply rename \(xc = x_1\) adn \(yc = y_1\) and obtain
+the inductive hypothesis restated using new terms: \(x_1Ry_1 \implies
+    x_1zRy_1z\).  This completes the inductive step, and hence the proof is
+completed.
 \end{document}
