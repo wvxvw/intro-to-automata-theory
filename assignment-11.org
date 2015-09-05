@@ -10,12 +10,14 @@
 #+LaTeX_CLASS: article
 #+LATEX_HEADER: \usepackage[usenames,dvipsnames]{color}
 #+LATEX_HEADER: \usepackage{commath}
+#+LATEX_HEADER: \usepackage{pgf}
 #+LATEX_HEADER: \usepackage{tikz}
 #+LATEX_HEADER: \usetikzlibrary{shapes,backgrounds}
 #+LATEX_HEADER: \usepackage{marginnote}
 #+LATEX_HEADER: \usepackage{listings}
 #+LATEX_HEADER: \usepackage{color}
 #+LATEX_HEADER: \usepackage{enumerate}
+#+LATEX_HEADER: \usetikzlibrary{arrows,automata}
 #+LATEX_HEADER: \hypersetup{urlcolor=blue}
 #+LATEX_HEADER: \hypersetup{colorlinks,urlcolor=blue}
 #+LATEX_HEADER: \setlength{\parskip}{16pt plus 2pt minus 2pt}
@@ -216,3 +218,73 @@
     the inductive hypothesis restated using new terms: $x_1Ry_1 \implies
     x_1zRy_1z$.  This completes the inductive step, and hence the proof is
     completed.
+
+** Problem 4
+   Build an DFA accepting languages over alphabet $\{a, b\}$ s.t.
+   1. The language contains all words with a substring $abb$, but never
+      with the substring $aa$.
+   2. If the word contains substring $bb$ must, it must be preceded by $aba$.
+
+*** Answer 7
+    Below is the DFA for the first question:
+
+    #+HEADER: :exports results
+    #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+    #+BEGIN_SRC latex
+      \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
+                          semithick]
+
+        \node[initial,state]    (A)              {$q_a$};
+        \node[state]            (B) [right of=A] {$q_b$};
+        \node[state]            (C) [right of=B] {$q_c$};
+        \node[accepting,state]  (D) [right of=C] {$q_d$};
+        \node[accepting,state]  (E) [below of=D] {$q_e$};
+
+        \path (A) edge [loop above] node {b}   (A)
+                  edge              node {a}   (B)
+              (B) edge              node {b}   (C)
+              (C) edge              node {a}   (B)
+                  edge              node {b}   (D)
+              (D) edge [loop above] node {b}   (D)
+                  edge              node {a}   (E)
+              (E) edge [loop left]  node {b}   (E)
+                  edge              node {a}   (D);
+      \end{tikzpicture}
+    #+END_SRC
+    
+    /Nodes where the automata dies are not shown./
+
+*** Answer 8
+    Below is the DFA for the second question:
+
+    #+HEADER: :exports results
+    #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+    #+BEGIN_SRC latex
+      \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
+                          semithick]
+
+        \node[accepting,initial,state] (A)              {$q_a$};
+        \node[accepting,state]         (B) [below of=A] {$q_b$};
+        \node[accepting,state]         (C) [below of=B] {$q_c$};
+        \node[accepting,state]         (D) [right of=C] {$q_d$};
+        \node[state]                   (E) [above of=D] {$q_e$};
+        \node[accepting,state]         (F) [above of=E] {$q_f$};
+        \node[accepting,state]         (G) [right of=D] {$q_g$};
+        \node[accepting,state]         (H) [left of=B]  {$q_H$};
+
+        \path (A) edge node {a} (B)
+                  edge node {b} (H)
+              (B) edge node {b} (C)
+              (C) edge node {a} (D)
+              (D) edge node {b} (E)
+                  edge node {a} (B)
+              (E) edge node {b} (F)
+                  edge node {a} (G)
+              (F) edge node {a} (B)
+              (G) edge node {a} (D)
+                  edge node {b} (E)
+              (H) edge node {a} (A);
+      \end{tikzpicture}
+    #+END_SRC
+    
+    /Nodes where the automata dies are not shown./

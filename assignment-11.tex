@@ -1,4 +1,4 @@
-% Created 2015-09-04 Fri 20:46
+% Created 2015-09-05 Sat 14:35
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -20,12 +20,14 @@
 \usepackage[utf8]{inputenc}
 \usepackage[usenames,dvipsnames]{color}
 \usepackage{commath}
+\usepackage{pgf}
 \usepackage{tikz}
 \usetikzlibrary{shapes,backgrounds}
 \usepackage{marginnote}
 \usepackage{listings}
 \usepackage{color}
 \usepackage{enumerate}
+\usetikzlibrary{arrows,automata}
 \hypersetup{urlcolor=blue}
 \hypersetup{colorlinks,urlcolor=blue}
 \setlength{\parskip}{16pt plus 2pt minus 2pt}
@@ -86,7 +88,7 @@
 \clearpage
 
 \section{Problems}
-\label{sec:orgheadline10}
+\label{sec:orgheadline13}
 
 \subsection{Problem 1}
 \label{sec:orgheadline3}
@@ -249,4 +251,73 @@ character must be the same by definition of \(R\).  Then \(xcRyc \implies
 the inductive hypothesis restated using new terms: \(x_1Ry_1 \implies
     x_1zRy_1z\).  This completes the inductive step, and hence the proof is
 completed.
+
+\subsection{Problem 4}
+\label{sec:orgheadline12}
+Build an DFA accepting languages over alphabet \(\{a, b\}\) s.t.
+\begin{enumerate}
+\item The language contains all words with a substring \(abb\), but never
+with the substring \(aa\).
+\item If the word contains substring \(bb\) must, it must be preceded by \(aba\).
+\end{enumerate}
+
+\subsubsection{Answer 7}
+\label{sec:orgheadline10}
+Below is the DFA for the first question:
+
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
+                    semithick]
+
+  \node[initial,state]    (A)              {$q_a$};
+  \node[state]            (B) [right of=A] {$q_b$};
+  \node[state]            (C) [right of=B] {$q_c$};
+  \node[accepting,state]  (D) [right of=C] {$q_d$};
+  \node[accepting,state]  (E) [below of=D] {$q_e$};
+
+  \path (A) edge [loop above] node {b}   (A)
+            edge              node {a}   (B)
+        (B) edge              node {b}   (C)
+        (C) edge              node {a}   (B)
+            edge              node {b}   (D)
+        (D) edge [loop above] node {b}   (D)
+            edge              node {a}   (E)
+        (E) edge [loop left]  node {b}   (E)
+            edge              node {a}   (D);
+\end{tikzpicture}
+
+
+\emph{Nodes where the automata dies are not shown.}
+
+\subsubsection{Answer 8}
+\label{sec:orgheadline11}
+Below is the DFA for the second question:
+
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
+                    semithick]
+
+  \node[accepting,initial,state] (A)              {$q_a$};
+  \node[accepting,state]         (B) [below of=A] {$q_b$};
+  \node[accepting,state]         (C) [below of=B] {$q_c$};
+  \node[accepting,state]         (D) [right of=C] {$q_d$};
+  \node[state]                   (E) [above of=D] {$q_e$};
+  \node[accepting,state]         (F) [above of=E] {$q_f$};
+  \node[accepting,state]         (G) [right of=D] {$q_g$};
+  \node[accepting,state]         (H) [left of=B]  {$q_H$};
+
+  \path (A) edge node {a} (B)
+            edge node {b} (H)
+        (B) edge node {b} (C)
+        (C) edge node {a} (D)
+        (D) edge node {b} (E)
+            edge node {a} (B)
+        (E) edge node {b} (F)
+            edge node {a} (G)
+        (F) edge node {a} (B)
+        (G) edge node {a} (D)
+            edge node {b} (E)
+        (H) edge node {a} (A);
+\end{tikzpicture}
+
+
+\emph{Nodes where the automata dies are not shown.}
 \end{document}
