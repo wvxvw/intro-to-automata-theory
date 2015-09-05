@@ -1,4 +1,4 @@
-% Created 2015-09-05 Sat 14:39
+% Created 2015-09-05 Sat 17:50
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -32,6 +32,7 @@
 \hypersetup{colorlinks,urlcolor=blue}
 \setlength{\parskip}{16pt plus 2pt minus 2pt}
 \renewcommand{\arraystretch}{1.6}
+\DeclareMathOperator{\Neg}{Neg}
 \author{Oleg Sivokon}
 \date{\textit{<2015-09-04 Fri>}}
 \title{Assignment 11, Authomata Theory}
@@ -88,7 +89,7 @@
 \clearpage
 
 \section{Problems}
-\label{sec:orgheadline13}
+\label{sec:orgheadline16}
 
 \subsection{Problem 1}
 \label{sec:orgheadline3}
@@ -320,4 +321,43 @@ Below is the DFA for the second question:
 
 
 \emph{Nodes where the automata dies are not shown.}
+
+\subsection{Problem 5}
+\label{sec:orgheadline15}
+Given alphabet of binary strings and netation operation defined as
+follows:
+\begin{align*}
+  \Neg(w) = \begin{cases}
+    \epsilon  &\mbox{if } w = \epsilon \\
+    1         &\mbox{if } w = 0 \\
+    0         &\mbox{if } w = 1 \\
+    0.\Neg(y) &\mbox{if } w = ay \land a = 1 \\
+    1.\Neg(y) &\mbox{if } w = ay \land a = 0\;.
+  \end{cases}
+\end{align*}
+
+And similarly for languages: \(\Neg(L) = \{w \;|\; \Neg(w) \in L\}\).
+
+\begin{enumerate}
+\item Does there exist a language \(\overline{L} = \Neg(L)\)?
+\item Does there exist a language \(\overline{L} \setminus \{\epsilon\} = \Neg(L)\)?
+\end{enumerate}
+
+\subsubsection{Answer 9}
+\label{sec:orgheadline13}
+No, there cannot be such language.  Suppose there was such a language, then
+\(\epsilon\) must be either in it or in its complement.  Suppose \(\epsilon\) is
+part of \(L\), then it must be also in its negation since \(\epsilon =
+    \Neg(\epsilon)\).  By symmetric reasoning \(\epsilon\) cannot be in \(\overline{L}\).
+
+\subsubsection{Answer 10}
+\label{sec:orgheadline14}
+Yes, there exists such a language, for instance the language representing all
+odd numbers in base 2.  Its complement would be a language representing all
+even numbers in base 2 and because words in \(L\) always end in 1 (with no other
+requirements) negating them will necessarily produce a word in \(\overline{L}\).
+
+No number is both odd and even, therefore negation produces exactly the
+complement of \(L\).  Since empty string is excluded, the only word which would
+be also a negation of itself is excluded as well.
 \end{document}

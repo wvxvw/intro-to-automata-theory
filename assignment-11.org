@@ -22,6 +22,7 @@
 #+LATEX_HEADER: \hypersetup{colorlinks,urlcolor=blue}
 #+LATEX_HEADER: \setlength{\parskip}{16pt plus 2pt minus 2pt}
 #+LATEX_HEADER: \renewcommand{\arraystretch}{1.6}
+#+LATEX_HEADER: \DeclareMathOperator{\Neg}{Neg}
 
 #+BEGIN_SRC emacs-lisp :exports none
   (setq org-latex-pdf-process
@@ -288,3 +289,41 @@
     #+END_SRC
     
     /Nodes where the automata dies are not shown./
+
+** Problem 5
+   Given alphabet of binary strings and netation operation defined as
+   follows:
+   #+HEADER: :exports results
+   #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+   #+BEGIN_SRC latex
+     \begin{align*}
+       \Neg(w) = \begin{cases}
+         \epsilon  &\mbox{if } w = \epsilon \\
+         1         &\mbox{if } w = 0 \\
+         0         &\mbox{if } w = 1 \\
+         0.\Neg(y) &\mbox{if } w = ay \land a = 1 \\
+         1.\Neg(y) &\mbox{if } w = ay \land a = 0\;.
+       \end{cases}
+     \end{align*}
+   #+END_SRC
+
+   And similarly for languages: $\Neg(L) = \{w \;|\; \Neg(w) \in L\}$.
+   
+   1. Does there exist a language $\overline{L} = \Neg(L)$?
+   2. Does there exist a language $\overline{L} \setminus \{\epsilon\} = \Neg(L)$?
+
+*** Answer 9
+    No, there cannot be such language.  Suppose there was such a language, then
+    $\epsilon$ must be either in it or in its complement.  Suppose $\epsilon$ is
+    part of $L$, then it must be also in its negation since $\epsilon =
+    \Neg(\epsilon)$.  By symmetric reasoning $\epsilon$ cannot be in $\overline{L}$.
+
+*** Answer 10
+    Yes, there exists such a language, for instance the language representing all
+    odd numbers in base 2.  Its complement would be a language representing all
+    even numbers in base 2 and because words in $L$ always end in 1 (with no other
+    requirements) negating them will necessarily produce a word in $\overline{L}$.
+
+    No number is both odd and even, therefore negation produces exactly the
+    complement of $L$.  Since empty string is excluded, the only word which would
+    be also a negation of itself is excluded as well.
