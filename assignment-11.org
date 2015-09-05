@@ -100,31 +100,7 @@
 
    2. Define exponentiation as follows:
       $L^K = \{x \in L \;|\; \exists y \in K.(\abs{y} = \abs{x})\}$.
-      What are the languages $L_4^{L_5}$ and $L_6^{L_1}$.
-
-
-   #+HEADER: :system swipl :exports both :results raw
-   #+HEADER: :goal assignment_11a.
-   #+BEGIN_SRC prolog
-     :- use_module(library(lists)).
-
-     concatentated_member(L1, L2, L3) :-
-         member(M1, L1), member(M2, L2),
-         string_concat(M1, M2, L3).
-
-     concatentated(L1, L2, L3) :-
-         findall(X, concatentated_member(L1, L2, X), X),
-         list_to_set(X, L3).
-
-     assignment_11a :-
-         X = ["aabb", "aabbb", "aa", "aaa"],
-         concatentated(X, X, Y),
-         [First | Rest] = Y,
-         write("$$\\{"),
-         write(First),
-         maplist(format(',\\allowbreak ~s'), Rest),
-         write("\\}$$").
-   #+END_SRC
+      What are the languages $L_4^{L_5}$ and $L_6^{L_1}$?
 
 *** Answer 1
     1. Concatenation of $L_4$ with itself gives:
@@ -133,6 +109,30 @@
     2. $(L_1 \cup L_2 \cup L_3)^R = \{\epsilon, a, aa, ba, bba\}$.
     3. $L_3L_1L_6 = \emptyset$.  This is so because there are no words
        in language $L_1$ to concatenate with.
+
+
+    #+HEADER: :system swipl :exports both :results raw
+    #+HEADER: :goal assignment_11a.
+    #+BEGIN_SRC prolog
+      :- use_module(library(lists)).
+
+      concatentated_member(L1, L2, L3) :-
+          member(M1, L1), member(M2, L2),
+          string_concat(M1, M2, L3).
+
+      concatentated(L1, L2, L3) :-
+          findall(X, concatentated_member(L1, L2, X), X),
+          list_to_set(X, L3).
+
+      assignment_11a :-
+          X = ["aabb", "aabbb", "aa", "aaa"],
+          concatentated(X, X, Y),
+          [First | Rest] = Y,
+          write("$$\\{"),
+          write(First),
+          maplist(format(',\\allowbreak ~s'), Rest),
+          write("\\}$$").
+    #+END_SRC
 
 *** Answer 2
     1. $L_4^{L_5} = \{aaa, aabb\}$.

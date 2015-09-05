@@ -1,4 +1,4 @@
-% Created 2015-09-05 Sat 14:35
+% Created 2015-09-05 Sat 14:39
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -113,7 +113,18 @@ Given following languages over the alphabet \(\{a, b\}\)
 
 \item Define exponentiation as follows:
 \(L^K = \{x \in L \;|\; \exists y \in K.(\abs{y} = \abs{x})\}\).
-What are the languages \(L_4^{L_5}\) and \(L_6^{L_1}\).
+What are the languages \(L_4^{L_5}\) and \(L_6^{L_1}\)?
+\end{enumerate}
+
+\subsubsection{Answer 1}
+\label{sec:orgheadline1}
+\begin{enumerate}
+\item Concatenation of \(L_4\) with itself gives:
+\(L_4L_4 = \{aabbaabb, aabbaabbb, aabbaa,\;\) \(aabbaaa, aabbbaabb,
+       aabbbaa, aabbbaaa, aaaabbb, aaaa, aaaaa, aaaaabb, aaaaabbb\}\)
+\item \((L_1 \cup L_2 \cup L_3)^R = \{\epsilon, a, aa, ba, bba\}\).
+\item \(L_3L_1L_6 = \emptyset\).  This is so because there are no words
+in language \(L_1\) to concatenate with.
 \end{enumerate}
 
 
@@ -140,17 +151,6 @@ assignment_11a :-
 \end{lstlisting}
 
 \(\{aabbaabb,\allowbreak aabbaabbb,\allowbreak aabbaa,\allowbreak aabbaaa,\allowbreak aabbbaabb,\allowbreak aabbbaabbb,\allowbreak aabbbaa,\allowbreak aabbbaaa,\allowbreak aaaabb,\allowbreak aaaabbb,\allowbreak aaaa,\allowbreak aaaaa,\allowbreak aaaaabb,\allowbreak aaaaabbb,\allowbreak aaaaaa\}\)
-
-\subsubsection{Answer 1}
-\label{sec:orgheadline1}
-\begin{enumerate}
-\item Concatenation of \(L_4\) with itself gives:
-\(L_4L_4 = \{aabbaabb, aabbaabbb, aabbaa,\;\) \(aabbaaa, aabbbaabb,
-       aabbbaa, aabbbaaa, aaaabbb, aaaa, aaaaa, aaaaabb, aaaaabbb\}\)
-\item \((L_1 \cup L_2 \cup L_3)^R = \{\epsilon, a, aa, ba, bba\}\).
-\item \(L_3L_1L_6 = \emptyset\).  This is so because there are no words
-in language \(L_1\) to concatenate with.
-\end{enumerate}
 
 \subsubsection{Answer 2}
 \label{sec:orgheadline2}
