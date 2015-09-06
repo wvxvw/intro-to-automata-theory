@@ -17,6 +17,9 @@
 #+LATEX_HEADER: \usepackage{listings}
 #+LATEX_HEADER: \usepackage{color}
 #+LATEX_HEADER: \usepackage{enumerate}
+#+LATEX_HEADER: \usepackage{algpseudocode}
+#+LATEX_HEADER: \usepackage{algorithm}
+#+LATEX_HEADER: \usepackage{mathtools}
 #+LATEX_HEADER: \usetikzlibrary{arrows,automata}
 #+LATEX_HEADER: \hypersetup{urlcolor=blue}
 #+LATEX_HEADER: \hypersetup{colorlinks,urlcolor=blue}
@@ -327,3 +330,94 @@
     No number is both odd and even, therefore negation produces exactly the
     complement of $L$.  Since empty string is excluded, the only word which would
     be also a negation of itself is excluded as well.
+
+** Problem 6
+   1. Given DFAs $A = (\Sigma, Q, q_0, F, \delta)$ and $B = (\Sigma, Q, q_0, F
+      \cap (Q \setminus q_0), \delta)$, is it also the case that $L(B) = L(A)
+      \cap \Sigma^+$?
+   2. Given DFA $A = (\Sigma, Q, q_0, F, \delta)$ construct DFA $B$ from $A$
+      s.t. it accepts all words of the language of $A$ which have length
+      distinct from 1.
+
+*** Answer 11
+    The conjecture is false.  Consider the language of unary strings of even
+    length described by the following transitions table:
+
+    #+ATTR_LaTeX: :align r|r
+    | $\delta$ | a     |
+    |----------+-------|
+    | $*q_0$   | $q_1$ |
+    | $q_1$    | $q_0$ |
+
+    In other words, $L(A) = \{\epsilon, aa, aaaa, aaaaaa, \dots\}$.  However
+    $F \setminus \{q_0\} = \emptyset$, i.e. no words are accepted by $L(B)$,
+    while $L(A) \cap \Sigma^+ = \{aa, aaaa, aaaaaa, \dots\}$.
+
+*** Answer 12
+    A DFA can accept words of length 1 in only these two scenarios:
+    1. It loops on some input in the first accepting state.
+    2. The state directly linked from the first state is accepting.
+
+
+    Below is the procedure to remove these accepting states while accepting
+    all other inputs.
+
+    1. If the first state loops on some inputs add a new state $q_1$, remove
+       all transitions from $q_0$ to itself and add transitions for the same
+       inputs $I_0$ from $q_0$ to $q_1$.  Add transitions on all inputs from
+       $q_1$ back to $q_0$.
+
+       For any input which on which $q_0$ used to loop $B$ now necessary makes
+       at least two transitions before accepting it, possibly accepted string
+       with prefixes that did not cause the automate to loop on $q_0$ are
+       still accepted (nothing has changed).
+    2. For each accepting state $q_n$ directly linked from $q_0$ we do the
+       following:
+       + change $q_n$ from accepting to non-accepting.
+       + add a new accepting state $q_2$.
+       + remove transitions from states $Q_i$ directly leading to $q_n$, for
+         each transition removed add a new one for the same input from $Q_i$
+         to $q_2$.
+       + for each outbound transition from $q_n$ add new transition on the
+         same input from $q_2$.
+
+
+    #+HEADER: :exports results
+    #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+    #+BEGIN_SRC latex
+      \begin{algorithm}
+        \caption{Ensure the language of this DFA has no words of length 1}
+        \begin{algorithmic}
+          \Procedure {$\textit{ensure-alphabet-length-ne-one}$}{$\Sigma, Q, q_0, F, \delta$}
+            \State $loops \gets \{i \;|\; \exists i \in \Sigma. (\delta(q_0, i) = q_0)\}$
+            \State $new \gets \textit{make new accepting state}$
+            \State $backarcs \gets \{(v, w, i) \;|\; \exists v,w \in Q. (\delta(q_0, j) = v = \delta(w, i))\}$
+            \For {$input \in loops$}
+              \State \Comment{Remove all loops from the first state}
+              \State \Call {$\textit{add-transition}$}{$q_0, new, input$}
+              \State \Call {$\textit{remove-transition}$}{$q_0, q_0, input$}
+            \EndFor
+            \For {$input \in \Sigma$}
+              \State \Comment{Bounce back from the new state to the first state}
+              \State \Call {$\textit{add-transition}$}{$new, q_0, input$}
+            \EndFor
+            \For {$(source, destination, input) \in backarcs$}
+              \State \Comment{For each state directly reachable \\
+                \hspace{6.7cm} from the first state reattach \\
+                \hspace{6.7cm} all inbound transitions \\
+                \hspace{6.7cm} to the new state}
+              \State $new \gets \textit{make new accepting state}$
+              \State \Call {$\textit{remove-transition}$}{$source, destination, input$}
+              \State \Call {$\textit{add-transition}$}{$source, new, input$}
+              \State $outbound \gets \{(i, w) \;|\; \exists w \in Q. (\delta(w, i) = destination)\}$
+              \For {$(input, destination) \in outbound$}
+                \State \Comment{Bounce back from the new state \\
+                  \hspace{6.7cm} to the states immediately \\
+                  \hspace{6.7cm} reachable from source state}
+                \State \Call {$\textit{add-transition}$}{$new, destination, input$}
+              \EndFor
+            \EndFor
+          \EndProcedure.
+        \end{algorithmic}
+      \end{algorithm}
+    #+END_SRC
