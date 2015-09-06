@@ -1,4 +1,4 @@
-% Created 2015-09-06 Sun 12:10
+% Created 2015-09-06 Sun 21:41
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -409,7 +409,7 @@ all other inputs.
 \item If the first state loops on some inputs add a new state \(q_1\), remove
 all transitions from \(q_0\) to itself and add transitions for the same
 inputs \(I_0\) from \(q_0\) to \(q_1\).  Add transitions on all inputs from
-\(q_1\) back to \(q_0\).
+\(q_1\) back to itself.
 
 For any input which on which \(q_0\) used to loop \(B\) now necessary makes
 at least two transitions before accepting it, possibly accepted string
@@ -420,9 +420,9 @@ following:
 \begin{itemize}
 \item change \(q_n\) from accepting to non-accepting.
 \item add a new accepting state \(q_2\).
-\item remove transitions from states \(Q_i\) directly leading to \(q_n\), for
-each transition removed add a new one for the same input from \(Q_i\)
-to \(q_2\).
+\item remove transitions from states \(Q_i\) directly to \(q_n\), for each
+transition removed add a new one for the same input from \(Q_i\) to
+\(q_2\).
 \item for each outbound transition from \(q_n\) add new transition on the
 same input from \(q_2\).
 \end{itemize}
@@ -432,14 +432,16 @@ same input from \(q_2\).
 \begin{algorithm}
   \caption{Ensure the language of this DFA has no words of length 1}
   \begin{algorithmic}
-    \Procedure {$\textit{ensure-alphabet-length-ne-one}$}{$\Sigma, Q, q_0, F, \delta$}
+    \Procedure {$\textit{ensure-word-length-ne-one}$}{$\Sigma, Q, q_0, F, \delta$}
       \State $loops \gets \{i \;|\; \exists i \in \Sigma. (\delta(q_0, i) = q_0)\}$
       \State $new \gets \textit{make new accepting state}$
-      \State $backarcs \gets \{(v, w, i) \;|\; \exists v,w \in Q. (\delta(q_0, j) = v = \delta(w, i))\}$
+      \State $backarcs \gets \{(v, w, i) \;|\; 
+      \exists v,w \in Q. (\delta(q_0, j) = v = \delta(w, i) \land i \neq q_0)\}$
       \For {$input \in loops$}
         \State \Comment{Remove all loops from the first state}
         \State \Call {$\textit{add-transition}$}{$q_0, new, input$}
         \State \Call {$\textit{remove-transition}$}{$q_0, q_0, input$}
+        \State \Call {$\textit{add-transition}$}{$new, new, input$}
       \EndFor
       \For {$input \in \Sigma$}
         \State \Comment{Bounce back from the new state to the first state}
@@ -461,7 +463,23 @@ same input from \(q_2\).
           \State \Call {$\textit{add-transition}$}{$new, destination, input$}
         \EndFor
       \EndFor
-    \EndProcedure.
+    \EndProcedure
   \end{algorithmic}
 \end{algorithm}
+
+Another way to go about this is to simply construct an automaton accepting
+all words of \(\Sigma* \setminus \{w \;|\; \#(w) = 1\}\) (example given below),
+but it feels like cheating.
+
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
+                    semithick]
+
+  \node[accepting,initial,state] (A)              {$q_a$};
+  \node[state]                   (B) [right of=A] {$q_b$};
+  \node[accepting,state]         (C) [right of=B] {$q_c$};
+
+  \path (A) edge              node {$a \in \Sigma$} (B)
+        (B) edge              node {$a \in \Sigma$} (C)
+        (C) edge [loop right] node {$a \in \Sigma$} (C);
+\end{tikzpicture}
 \end{document}
