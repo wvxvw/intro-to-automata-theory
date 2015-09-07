@@ -1,4 +1,4 @@
-% Created 2015-09-06 Sun 21:41
+% Created 2015-09-07 Mon 19:24
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -18,21 +18,17 @@
 \usepackage{hyperref}
 \tolerance=1000
 \usepackage[utf8]{inputenc}
-\usepackage[usenames,dvipsnames]{color}
 \usepackage{commath}
 \usepackage{pgf}
 \usepackage{tikz}
 \usetikzlibrary{shapes,backgrounds}
 \usepackage{marginnote}
 \usepackage{listings}
-\usepackage{color}
 \usepackage{enumerate}
 \usepackage{algpseudocode}
 \usepackage{algorithm}
 \usepackage{mathtools}
 \usetikzlibrary{arrows,automata}
-\hypersetup{urlcolor=blue}
-\hypersetup{colorlinks,urlcolor=blue}
 \setlength{\parskip}{16pt plus 2pt minus 2pt}
 \renewcommand{\arraystretch}{1.6}
 \DeclareMathOperator{\Neg}{Neg}
@@ -197,7 +193,7 @@ be a member of \((L_1 \cup L_2) L_3\).  As in previous case, whenever \(L_3\)
 or \((L_1 \cup L_2)\) are empty, both sides of equation contain an empty set.
 Hence we proved both directions, hence the conjecture is true.
 
-\subsubsection{Anser 4}
+\subsubsection{Answer 4}
 \label{sec:orgheadline5}
 This conjecture isn't generally true.  Suppose \(L_1 = L_3 = \{a\}\) and
 \(L_3 = \{\epsilon, aa\}\).  Then:
@@ -468,8 +464,16 @@ same input from \(q_2\).
 \end{algorithm}
 
 Another way to go about this is to simply construct an automaton accepting
-all words of \(\Sigma* \setminus \{w \;|\; \#(w) = 1\}\) (example given below),
-but it feels like cheating.
+all words of \(\Sigma* \setminus \{w \;|\; \#(w) = 1\}\) (example given
+below), and to take a product of this newly constructed automaton with \(A\).
+\(B\) will accept the language of \(A\) sans the words of length 1 because of
+the properties of the product of automata.  Only the words accepted by both
+automata are accepted by the product, in particular, all words accepted by
+\(A\) are accepted by \(B\), unless they have length equal to 1.  Conversely,
+whenever a word is accepted by \(A\), it is also accepted by \(B\), (because it
+is accepted by both original automata) and it is not accepted if it has
+length equal to 1 (because the constructed automata doesn't accept such words
+by construction).
 
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
                     semithick]

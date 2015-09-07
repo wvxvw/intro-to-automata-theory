@@ -8,21 +8,17 @@
 #+KEYWORDS: Automata Theory, Formal Languages, Assignment
 #+LANGUAGE: en
 #+LaTeX_CLASS: article
-#+LATEX_HEADER: \usepackage[usenames,dvipsnames]{color}
 #+LATEX_HEADER: \usepackage{commath}
 #+LATEX_HEADER: \usepackage{pgf}
 #+LATEX_HEADER: \usepackage{tikz}
 #+LATEX_HEADER: \usetikzlibrary{shapes,backgrounds}
 #+LATEX_HEADER: \usepackage{marginnote}
 #+LATEX_HEADER: \usepackage{listings}
-#+LATEX_HEADER: \usepackage{color}
 #+LATEX_HEADER: \usepackage{enumerate}
 #+LATEX_HEADER: \usepackage{algpseudocode}
 #+LATEX_HEADER: \usepackage{algorithm}
 #+LATEX_HEADER: \usepackage{mathtools}
 #+LATEX_HEADER: \usetikzlibrary{arrows,automata}
-#+LATEX_HEADER: \hypersetup{urlcolor=blue}
-#+LATEX_HEADER: \hypersetup{colorlinks,urlcolor=blue}
 #+LATEX_HEADER: \setlength{\parskip}{16pt plus 2pt minus 2pt}
 #+LATEX_HEADER: \renewcommand{\arraystretch}{1.6}
 #+LATEX_HEADER: \DeclareMathOperator{\Neg}{Neg}
@@ -172,7 +168,7 @@
     or $(L_1 \cup L_2)$ are empty, both sides of equation contain an empty set.
     Hence we proved both directions, hence the conjecture is true.
 
-*** Anser 4
+*** Answer 4
     This conjecture isn't generally true.  Suppose $L_1 = L_3 = \{a\}$ and
     $L_3 = \{\epsilon, aa\}$.  Then:
 
@@ -425,8 +421,16 @@
     #+END_SRC
 
     Another way to go about this is to simply construct an automaton accepting
-    all words of $\Sigma* \setminus \{w \;|\; \#(w) = 1\}$ (example given below),
-    but it feels like cheating.
+    all words of $\Sigma* \setminus \{w \;|\; \#(w) = 1\}$ (example given
+    below), and to take a product of this newly constructed automaton with $A$.
+    $B$ will accept the language of $A$ sans the words of length 1 because of
+    the properties of the product of automata.  Only the words accepted by both
+    automata are accepted by the product, in particular, all words accepted by
+    $A$ are accepted by $B$, unless they have length equal to 1.  Conversely,
+    whenever a word is accepted by $A$, it is also accepted by $B$, (because it
+    is accepted by both original automata) and it is not accepted if it has
+    length equal to 1 (because the constructed automata doesn't accept such words
+    by construction).
     
     #+HEADER: :exports results
     #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
