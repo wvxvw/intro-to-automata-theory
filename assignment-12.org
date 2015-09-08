@@ -1,0 +1,339 @@
+# -*- fill-column: 80; org-confirm-babel-evaluate: nil -*-
+
+#+TITLE:     Assignment 12, Authomata Theory
+#+AUTHOR:    Oleg Sivokon
+#+EMAIL:     olegsivokon@gmail.com
+#+DATE:      <2015-09-07 Mon>
+#+DESCRIPTION: Second assignment in the course 20440 Automata and Formal Languages
+#+KEYWORDS: Automata Theory, Formal Languages, Assignment
+#+LANGUAGE: en
+#+LaTeX_CLASS: article
+#+LATEX_HEADER: \usepackage{commath}
+#+LATEX_HEADER: \usepackage{pgf}
+#+LATEX_HEADER: \usepackage{tikz}
+#+LATEX_HEADER: \usetikzlibrary{shapes,backgrounds}
+#+LATEX_HEADER: \usepackage{marginnote}
+#+LATEX_HEADER: \usepackage{listings}
+#+LATEX_HEADER: \usepackage{enumerate}
+#+LATEX_HEADER: \usepackage{algpseudocode}
+#+LATEX_HEADER: \usepackage{algorithm}
+#+LATEX_HEADER: \usepackage{mathtools}
+#+LATEX_HEADER: \usetikzlibrary{arrows,automata}
+#+LATEX_HEADER: \setlength{\parskip}{16pt plus 2pt minus 2pt}
+#+LATEX_HEADER: \renewcommand{\arraystretch}{1.6}
+#+LATEX_HEADER: \DeclareMathOperator{\Neg}{Neg}
+
+#+BEGIN_SRC emacs-lisp :exports none
+  (setq org-latex-pdf-process
+          '("latexmk -pdflatex='pdflatex -shell-escape -interaction nonstopmode' -pdf -f %f")
+          org-latex-listings t
+          org-src-fontify-natively t
+          org-latex-custom-lang-environments '((maxima "maxima"))
+          org-listings-escape-inside '("(*@" . "@*)")
+          org-babel-latex-htlatex "htlatex")
+  (defmacro by-backend (&rest body)
+      `(cl-case (when (boundp 'backend) (org-export-backend-name backend))
+         ,@body))
+#+END_SRC
+
+#+RESULTS:
+: by-backend
+
+#+BEGIN_LATEX
+\definecolor{codebg}{rgb}{0.96,0.99,0.8}
+\definecolor{codestr}{rgb}{0.46,0.09,0.2}
+\lstset{%
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\scriptsize,
+  breakatwhitespace=false,
+  breaklines=false,
+  captionpos=b,
+  framexleftmargin=10pt,
+  xleftmargin=10pt,
+  framerule=0pt,
+  frame=tb,
+  keepspaces=true,
+  keywordstyle=\color{blue},
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  stringstyle=\color{codestr},
+  tabsize=2
+}
+\lstnewenvironment{maxima}{%
+  \lstset{%
+    backgroundcolor=\color{codebg},
+    escapeinside={(*@}{@*)},
+    aboveskip=20pt,
+    captionpos=b,
+    label=,
+    caption=,
+    showstringspaces=false,
+    frame=single,
+    framerule=0pt,
+    basicstyle=\ttfamily\scriptsize,
+    columns=fixed}}{}
+}
+\makeatletter
+\newcommand{\verbatimfont}[1]{\renewcommand{\verbatim@font}{\ttfamily#1}}
+\makeatother
+\verbatimfont{\small}%
+\clearpage
+#+END_LATEX
+
+* Problems
+
+** Problem 1
+   1. Build an NFA for the language over alphabet $\{a,b\}$ where words must
+      start with $bab$ and end in $b$.
+   2. Build an NFA for the language over alphabet $\{a,b,c\}$, defined as
+      follows: $L = \{w \;|\; \exists n,m,k \in \mathbb{N}.(w = a^nb^mc^k \land
+      \#(w) \mod 2 = 0)\}$.
+   3. Build an NFA for the language over alphabet $\{a,b\}$, s.t. it contains
+      all words with substring $aba$ repeated at least twice.
+
+*** Answer 1
+    #+HEADER: :exports results
+    #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+    #+BEGIN_SRC latex
+      \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
+                          semithick]
+
+        \node[initial,state]   (A)              {$q_0$};
+        \node[state]           (B) [right of=A] {$q_1$};
+        \node[state]           (C) [right of=B] {$q_2$};
+        \node[accepting,state] (D) [right of=C] {$q_3$};
+        \node[state]           (E) [below of=D] {$q_4$};
+
+        \path (A) edge              node {b} (B)
+              (B) edge              node {a} (C)
+              (C) edge              node {b} (D)
+              (D) edge              node {a} (E)
+                  edge [loop above] node {b} (D)
+              (E) edge              node {b} (D)
+                  edge [loop right] node {a} (E);
+      \end{tikzpicture}
+    #+END_SRC
+
+    /The nodes where automaton dies are not shown./
+
+    The language accepted by this automaton must start with the prefix $bab$ as
+    can be seen in diagram above.  The only accepting state has transitions
+    pointing at it only on inputs $b$, thus all words accepted by this language
+    must end in $b$.
+
+    Conversely, if the words start with the prefix $bab$, then we must reach the
+    statate $\hat{\delta}(bab, q_0) = q_4$.  From $q_4$ the input can be either
+    accepted, since it already ends in any number of $b$, or it may follow
+    through to $q_4$ and whenever $b$ is encountered in the input---return to
+    $q_3$.  Since all execution path will thus lead to the accepting state on
+    $b$ or to rejecting state on $a$, I conclude that all words with prefix $bab$
+    and ending in $b$ are accepted by the described automaton.
+
+*** Answer 2
+    A regular expression to summarize the effort: $(((aa)^*((bb)^*(cc)^*) +
+    (b(bb)^*c(cc)^*))) + (a(aa)^*((b(bb)^*(cc)^*) + (b(bb)^*(cc)^*)))$.
+
+    #+HEADER: :exports results
+    #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+    #+BEGIN_SRC latex
+      \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
+                          semithick]
+
+        \node[accepting,initial,state]   (A)              {$q_0$};
+        \node[state]                     (B) [below right of=A] {$q_1$};
+        \node[accepting,state]           (C) [below of=B] {$q_2$};
+        \node[state]                     (D) [above right of=C] {$q_3$};
+        \node[accepting,state]           (E) [above of=D] {$q_4$};
+        \node[state]                     (F) [right of=D] {$q_5$};
+
+        \path (A) edge node {$a$}        (B)
+                  edge node {$\epsilon$} (C)
+                  edge node {$\epsilon$} (E)
+              (B) edge node {$a$}        (A)
+                  edge node {$b$}        (C)
+              (C) edge node {$b$}        (D)
+                  edge node {$c$}        (F)
+              (D) edge node {$b$}        (C)
+                  edge node {$c$}        (E)
+              (E) edge node {$c$}        (F)
+              (F) edge node {$c$}        (E);
+      \end{tikzpicture}
+    #+END_SRC
+
+    Essentially, what happens in this diagram is as follows:
+    1. On first input we decide whether the prefix starts with $a$, $b$ or $c$.
+    2. Once decided, we parse more of the prefix.
+       + If the prefix was $c$, we make sure there is even number of $c$.
+       + If the prefix started with $b$, we create two branches, one will pick
+         the non-accepting state of the bit of automaton processing $c$ prefix
+         once we counted even number of $b$ inputs, and an accepting state
+         otherwise.
+       + If our prefix was $a$, then we will proceed similarly to the previous
+         case, however, we will switch roles: on odd number of $a's$, we will
+         switch to an accepting state and to a non-accepting state otherwise.
+
+*** Answer 3
+    The diagram below can be also given by the regular expression:
+    $((ab)^*b^*)^*aba(ba + (((ab)^*b^*)aba))(a + b)^*$.  An easier, but a
+    sloppier way to write the same regexp would be:
+    $(a + b)^*(ababa + (aba(a + b)^*aba))(a + b)^*$.
+    
+    #+HEADER: :exports results
+    #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+    #+BEGIN_SRC latex
+      \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
+                          semithick]
+
+        \node[initial,state]   (A)                    {$q_0$};
+        \node[state]           (B) [above right of=A] {$q_1$};
+        \node[state]           (C) [below right of=B] {$q_2$};
+        \node[state]           (D) [right of=C]       {$q_3$};
+        \node[state]           (E) [below left of=C]  {$q_4$};
+        \node[state]           (F) [below left of=D]  {$q_5$};
+        \node[accepting,state] (G) [right of=F]       {$q_6$};
+        \node[state]           (H) [below right of=E] {$q_7$};
+
+        \path (A) edge [loop below] node {$b$}   (B)
+                  edge              node {$a$}   (B)
+              (B) edge              node {$a$}   (A)
+                  edge              node {$b$}   (C)
+              (C) edge              node {$a$}   (D)
+                  edge              node {$b$}   (A)
+              (D) edge              node {$a$}   (E)
+                  edge              node {$b$}   (F)
+              (E) edge [loop left]  node {$a$}   (E)
+                  edge              node {$b$}   (F)
+              (F) edge              node {$a$}   (G)
+                  edge              node {$b$}   (H)
+              (G) edge [loop right] node {$a,b$} (G)
+              (H) edge              node {$a$}   (E)
+                  edge [loop below] node {$b$}   (E);
+      \end{tikzpicture}
+    #+END_SRC
+
+    Put in words: skip over repetitions of $bb$ possibly preceded by $a$, until
+    encountering $aba$ substring.  Once that happens, consider the prefix of the
+    second $aba$ substring found.  If the next input is $b$, continue matching,
+    else---bail out and essentially repeat the previously described procedure.
+
+** Problem 2
+   Prove or disprove that pairs of regular expressions to follow accept the same
+   language.
+   1. $(0(10^*)^*)^*+1^*$ and $(1+0)^*$.
+   2. $(1+0)^+$ and $(0^*1)^*(1^*0)^++(0^*1)^+$.
+   3. $1^*(0^*10^*)^*$ and $(101^*)^*1^*$.
+
+*** Answer 3
+    Two expressions are not equivalent.  $(1+0)^*$ matches any binary string,
+    while $(0(10^*)^*)^*+1^*$ doesn't match any binary string containing with a
+    prefix 00 or more consequtive zeros.
+
+*** Answer 4
+    Two expressions are equivalent.  $(0^*1)^+$ will match any binary at least
+    one character long string edning in 1, while $(1^*0)^+$ will match any
+    binary string at least one character long ending in 0.  The union of these
+    two expressions will match all binary strings of length at least 1, which is
+    equivalent to $(1+0)^+$.  The $(0^*1)^*$ of the second expression plays no
+    role (is redundant).
+
+*** Answer 5
+    Teo expressions are not equivalent.  $(101^*)^*1^*$ will not match string
+    containing 00 or more consequent zeros as a substring, while this is not a
+    problem for $1^*(0^*10^*)^*$.
+    
+** Problem 3
+   Write a regular expression for the language over alphabet $\{a,b\}$ s.t. all
+   words in this language start with either $aa$ or $bbb$ and none of them
+   contains substring $bab$.
+
+*** Answer 6
+    The desired regex is $(bbb^+)^*(aa^+b^*)^*$.
+
+** Problem 4
+   Write an algorithm which accepts a regular expression $r$ and produces a
+   language $\overline{L[r]}$.
+
+** Problem 5
+   Build a DFA from given NFA:
+
+   #+HEADER: :exports results
+   #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+   #+BEGIN_SRC latex
+     \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
+                         semithick]
+
+       \node[accepting,initial,state]   (A)                    {$q_0$};
+       \node[state]                     (B) [right of=A]       {$q_1$};
+       \node[accepting,state]           (C) [above right of=B] {$q_3$};
+       \node[accepting,state]           (D) [below of=C]       {$q_4$};
+
+       \path (A) edge              node {$\epsilon$}   (B)
+             (B) edge              node {$a,b$}        (C)
+                 edge              node {$a$}          (D)
+             (C) edge [loop right] node {$\epsilon$}   (D)
+                 edge              node {$a,\epsilon$} (D)
+             (D) edge              node {$b$}          (B)
+                 edge [loop right] node {$b$}          (D);
+     \end{tikzpicture}
+   #+END_SRC
+
+*** Answer 7
+    The corresponding DFA can be written as:
+
+    #+HEADER: :exports results
+    #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+    #+BEGIN_SRC latex
+      \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=1.8cm,
+                          semithick]
+
+        \node[accepting,initial,state]   (A)              {$q_0$};
+        \node[accepting,state]           (B) [right of=A] {$q_1$};
+        \node[accepting,state]           (C) [above of=B] {$q_2$};
+        \node[accepting,state]           (D) [right of=B] {$q_3$};
+        \node[accepting,state]           (E) [below of=D] {$q_4$};
+        \node[accepting,state]           (F) [left of=E]  {$q_5$};
+
+        \path (A) edge  node {$a$}   (B)
+                  edge  node {$b$}   (C)
+              (B) edge  node {$a$}   (D)
+              (C) edge  node {$a$}   (D)
+              (D) edge  node {$b$}   (E)
+              (E) edge  node {$b$}   (F)
+              (F) edge  node {$b$}   (E)
+                  edge  node {$a$}   (B);
+      \end{tikzpicture}
+    #+END_SRC
+
+    /Nodes where automata dies are not shown./
+
+** Problem 6
+   Write a regular expression for the diagram below:
+   
+   #+HEADER: :exports results
+   #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+   #+BEGIN_SRC latex
+     \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
+                         semithick]
+
+       \node[accepting,initial,state]   (A)              {$q_0$};
+       \node[state]                     (B) [right of=A] {$q_1$};
+       \node[accepting,state]           (C) [right of=B] {$q_3$};
+
+       \path (A) edge              node {$b$}   (B)
+             (B) edge              node {$a,b$} (C)
+             (C) edge [loop above] node {$b$}   (D)
+                 edge              node {$a$}   (B);
+     \end{tikzpicture}
+   #+END_SRC
+
+   /Nodes where the automata dies are not shown./
+
+*** Answer 8
+    The regular expression for the diagram above: $\epsilon + b((a + b)b^*)^+$.
+
+** Problem 7
+   Given regular expression $r$ and $L$, a language over $\Sigma$ which
+   designates regular expression $r\Sigma^*$.  Prove that unless $L = \Sigma^*$
+   and $L = \emptyset$, there doesn't exist a regular expression $s$ s.t.
+   $s\Sigma^*$ designates $\overline{L}$.
