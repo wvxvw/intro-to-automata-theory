@@ -124,11 +124,12 @@ nfa_state_input_cached(State, States, Result, Cache) :-
     findall(To, (member(S, State), nfa_state_to([], To, S, States)), Interim),
     ord_subtract(Interim, Cache, Res),
     ( Res = [] -> Result = Cache ;
-      append(Interim, Res, Cache1),
-      findall(X, (member(X, Res), nfa_nth_state(X, States)), Filtered),
+      flatten(Res, Res1),
+      append(Interim, Res1, Cache1),
+      findall(X, (member(R, Res1), member([R, X], States)), Filtered),
       findall(Y, (member(F, Filtered), 
-                  nfa_state_input_cached(F, States, Y, Cache1)), Res1),
-      append(Cache, Res1, Result) ).
+                  nfa_state_input_cached(F, States, Y, Cache1)), Res2),
+      append(Cache, Res2, Result) ).
 
 nfa_state_to([], To, trn(From, To1, []), States) :-
     include(nfa_nth_state(To1), States, State),
