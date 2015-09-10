@@ -90,5 +90,46 @@ vregex_to_nfa(Regex, Diagram) :-
 
 regex_to_nfa(Regex, Diagram) :-
     phrase(gexps(Parsed), Regex),
-    format('Parsed = ~w~n', [Parsed]),
+    %% format('Parsed = ~w~n', [Parsed]),
     vregex_to_nfa(Parsed, Diagram).
+
+nfa_inputs_helper([], X, X).
+nfa_inputs_helper([trn(_, _, X) | Diagram], Acc, Inputs) :-
+    ( member(X, Acc) ->
+          nfa_inputs_helper(Diagram, Acc, Inputs) ;
+      nfa_inputs_helper(Diagram, [X | Acc], Inputs) ).
+nfa_inputs(Diagram, Inputs) :-
+    nfa_inputs_helper(Diagram, [], Inputs).
+
+nfa_states_helper([], X, X).
+nfa_states_helper([trn(From, To, _) | Diagram], Acc, States) :-
+    ( member(From, Acc) ->
+          ( member(To, Acc) ->
+                nfa_states_helper(Diagram, Acc, States) ;
+            nfa_states_helper(Diagram, [To | Acc], States) ) ;
+      ( member(To, Acc) ->
+            nfa_states_helper(Diagram, [From | Acc], States) ;
+        nfa_states_helper(Diagram, [From, To | Acc], States) ) ).
+nfa_states(Diagram, States) :-
+    nfa_states_helper(Diagram, [], States).
+
+nfa_state_n(N, trn(N, _, _)).
+
+nfa_state(Diagram, N, State) :-
+    include(nfa_state_n(N), Diagram, State).
+
+nfa_state_to(Input, To, trn(_, To, Input)).
+
+nfa_state_input(Input, State, Result) :-
+    findall(To, (member(S, State), nfa_state_to(Input, To, S)), Interim),
+    ( Interim = [] -> Result = [empty] ; Result = Interim ).
+
+nfa_table_helper([], _, X, X).
+nfa_table_helper([[N, State] | States], Inputs, Acc, Table) :-
+    findall(X, (member(Y, Inputs), nfa_state_input(Y, State, X)), Row),
+    nfa_table_helper(States, Inputs, [Row | Acc], Table).
+nfa_table(Diagram, table(Inputs, Table)) :-
+    nfa_inputs(Diagram, Inputs),
+    nfa_states(Diagram, States),
+    findall([X, Y], (member(X, States), nfa_state(Diagram, X, Y)), StatesL),
+    nfa_table_helper(StatesL, Inputs, [], Table).
