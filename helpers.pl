@@ -8,6 +8,7 @@ concatentated(L1, L2, L3) :-
     findall(X, concatentated_member(L1, L2, X), X),
     list_to_set(X, L3).
 
+rterminal([]).                  % this is epsilon
 rterminal(X)  :- atom(X).
 runion(X, Y)  :- regex(X), regex(Y).
 rstar(X)      :- regex(X).
@@ -57,4 +58,37 @@ gexps(Tree) -->
     gexp(Tree) ;
     gexp(Node), gexps(Rest), { Tree = rconcat(Node, Rest) }.
 
-%% nfa(Regex, Diagram) :-.
+vexp(rterminal(C))  --> { char_code(C, R) }, [R].
+vexp(runion(L, R))  --> "(", vexp(L), "+", vexp(R), ")".
+vexp(rstar(E))      --> "(", vexp(E), ")*".
+vexp(rconcat(L, R)) --> vexp(L), vexp(R).
+
+regex_to_string(Exp, Result) :-
+    phrase(Exp, Codes), text_to_string(Codes, Result).
+
+vre_to_nfa_helper(rterminal(X), From, To, [trn(From, To, X)], P, P).
+vre_to_nfa_helper(rconcat(L, R), From, To, Diagram, Prev, Next) :-
+    Next1 is Prev + 1,
+    vre_to_nfa_helper(L, From, Prev, Left, Next1, Next2),
+    vre_to_nfa_helper(R, Prev, To, Right, Next2, Next),
+    append(Left, Right, Diagram).
+vre_to_nfa_helper(runion(L, R), From, To, Diagram, Prev, Next) :-
+    vre_to_nfa_helper(L, From, To, Left, Prev, Next1),
+    vre_to_nfa_helper(R, From, To, Right, Next1, Next),
+    append(Left, Right, Diagram).
+vre_to_nfa_helper(rstar(X), From, To, Diagram, Prev, Next) :-
+    MidRight is Prev + 1,
+    Next0 is MidRight + 1,
+    vre_to_nfa_helper(rterminal([]), From, Prev, Left, Next0, Next1),
+    vre_to_nfa_helper(rterminal([]), From, To, Long, Next0, Next1),
+    vre_to_nfa_helper(rterminal([]), MidRight, To, Right, Next1, Next2),
+    vre_to_nfa_helper(rterminal([]), To, Prev, Back, Next2, Next3),
+    vre_to_nfa_helper(X, Prev, MidRight, Forward, Next3, Next),
+    append([Left, Long, Right, Back, Forward], Diagram).
+vregex_to_nfa(Regex, Diagram) :-
+    vre_to_nfa_helper(Regex, 0, 1, Diagram, 2, _).
+
+regex_to_nfa(Regex, Diagram) :-
+    phrase(gexps(Parsed), Regex),
+    format('Parsed = ~w~n', [Parsed]),
+    vregex_to_nfa(Parsed, Diagram).
