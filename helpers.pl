@@ -118,18 +118,48 @@ nfa_state_n(N, trn(N, _, _)).
 nfa_state(Diagram, N, State) :-
     include(nfa_state_n(N), Diagram, State).
 
-nfa_state_to(Input, To, trn(_, To, Input)).
+nfa_nth_state(N, [N, _]).
 
-nfa_state_input(Input, State, Result) :-
-    findall(To, (member(S, State), nfa_state_to(Input, To, S)), Interim),
-    ( Interim = [] -> Result = [empty] ; Result = Interim ).
+nfa_state_input_cached(State, States, Result, Cache) :-
+    findall(To, (member(S, State), nfa_state_to([], To, S, States)), Interim),
+    ord_subtract(Interim, Cache, Res),
+    ( Res = [] -> Result = Cache ;
+      append(Interim, Res, Cache1),
+      findall(X, (member(X, Res), nfa_nth_state(X, States)), Filtered),
+      findall(Y, (member(F, Filtered), 
+                  nfa_state_input_cached(F, States, Y, Cache1)), Res1),
+      append(Cache, Res1, Result) ).
 
-nfa_table_helper([], _, X, X).
-nfa_table_helper([[N, State] | States], Inputs, Acc, Table) :-
-    findall(X, (member(Y, Inputs), nfa_state_input(Y, State, X)), Row),
-    nfa_table_helper(States, Inputs, [Row | Acc], Table).
+nfa_state_to([], To, trn(From, To1, []), States) :-
+    include(nfa_nth_state(To1), States, State),
+    [[_, Row]] = State,
+    nfa_state_input_cached(Row, States, To, [From, To1]).
+nfa_state_to(Input, To, trn(_, To, Input), _) :- atom(Input).
+
+nfa_state_input(Input, State, States, Result) :-
+    findall(To, (member(S, State), nfa_state_to(Input, To, S, States)), Interim),
+    flatten(Interim, Inter1),
+    list_to_set(Inter1, Inter2),
+    ( Inter2 = [] ->
+          ( Input = [] ->
+                [trn(N, _, _), _] = State, Result = [N] ;
+            Result = [e] ) ;
+      Result = Inter2 ).
+
+nfa_table_helper([], _, _, X, X).
+nfa_table_helper([[N, State] | States], All, Inputs, Acc, Table) :-
+    findall(X, (member(Y, Inputs), nfa_state_input(Y, State, All, X)), Row),
+    nfa_table_helper(States, All, Inputs, [row(N, Row) | Acc], Table).
 nfa_table(Diagram, table(Inputs, Table)) :-
     nfa_inputs(Diagram, Inputs),
     nfa_states(Diagram, States),
     findall([X, Y], (member(X, States), nfa_state(Diagram, X, Y)), StatesL),
-    nfa_table_helper(StatesL, Inputs, [], Table).
+    nfa_table_helper(StatesL, StatesL, Inputs, [], Table).
+
+format_table_helper([]).
+format_table_helper([row(N, Row) | Table]) :-
+    format('~d | ~w |~n', [N, Row]),
+    format_table_helper(Table).
+format_table(table(Inputs, Table)) :-
+    format('~w~n', [Inputs]),
+    format_table_helper(Table).
