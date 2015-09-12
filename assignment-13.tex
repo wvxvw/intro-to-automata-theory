@@ -1,0 +1,207 @@
+% Created 2015-09-12 Sat 18:46
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\tolerance=1000
+\usepackage[utf8]{inputenc}
+\usepackage{commath}
+\usepackage{pgf}
+\usepackage{tikz}
+\usetikzlibrary{shapes,backgrounds}
+\usepackage{marginnote}
+\usepackage{listings}
+\usepackage{enumerate}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{mathtools}
+\usetikzlibrary{arrows,automata}
+\setlength{\parskip}{16pt plus 2pt minus 2pt}
+\renewcommand{\arraystretch}{1.6}
+\DeclareMathOperator{\Neg}{Neg}
+\author{Oleg Sivokon}
+\date{\textit{<2015-09-11 Fri>}}
+\title{Assignment 13, Authomata Theory}
+\hypersetup{
+ pdfauthor={Oleg Sivokon},
+ pdftitle={Assignment 13, Authomata Theory},
+ pdfkeywords={Automata Theory, Formal Languages, Assignment},
+ pdfsubject={Third assignment in the course 20440 Automata and Formal Languages},
+ pdfcreator={Emacs 25.0.50.1 (Org mode 8.3beta)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\definecolor{codebg}{rgb}{0.96,0.99,0.8}
+\definecolor{codestr}{rgb}{0.46,0.09,0.2}
+\lstset{%
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\scriptsize,
+  breakatwhitespace=false,
+  breaklines=false,
+  captionpos=b,
+  framexleftmargin=10pt,
+  xleftmargin=10pt,
+  framerule=0pt,
+  frame=tb,
+  keepspaces=true,
+  keywordstyle=\color{blue},
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  stringstyle=\color{codestr},
+  tabsize=2
+}
+\lstnewenvironment{maxima}{%
+  \lstset{%
+    backgroundcolor=\color{codebg},
+    escapeinside={(*@}{@*)},
+    aboveskip=20pt,
+    captionpos=b,
+    label=,
+    caption=,
+    showstringspaces=false,
+    frame=single,
+    framerule=0pt,
+    basicstyle=\ttfamily\scriptsize,
+    columns=fixed}}{}
+}
+\makeatletter
+\newcommand{\verbatimfont}[1]{\renewcommand{\verbatim@font}{\ttfamily#1}}
+\makeatother
+\verbatimfont{\small}%
+\clearpage
+
+\section{Problems}
+\label{sec:orgheadline9}
+
+\subsection{Problem 1}
+\label{sec:orgheadline2}
+Prove that
+\begin{align*}
+  L = \{w \in \{a, b, c, d\}^* \;|\; w=dv, v \in \{a, b, c\}^*,
+  \#_a(w) \cdot \#_c(w) < \#_b(w) \}
+\end{align*}
+
+is not regular.
+
+\subsubsection{Answer 1}
+\label{sec:orgheadline1}
+Assume, for contradiction that \(L\) is regular, then pumping lemma must hold.
+Let \(p\) be the pumping length of \(L\), the \(dabc^pb^pb \in L\) because \(1
+    \cdot p=p\).  Consider cases of selecting the middle substring \(y\) defined by
+pumping lemma:
+\begin{enumerate}
+\item If \(y\) contains \(d\), then we cannot repeat it, since by definition \(d\)
+       happens only once in the beginning of each word.
+\item If \(y\) contains \(a\) we cannot repeat it, since in that case \(p \cdot x >
+       p\) whenever \(x > 1\), which violates the definition of \(L\).
+\item If we repeat any string containing \(c\), (but not containing \(b\), which
+see in the next bullet point), we will violate the requirement that
+\(\#_b(w) > \#_c(w) \cdot \#_a(w)\).
+\item Since the prefix concatenated with \(y\) should not be longer than \(p\),
+we cannot repeat any string containing \(b\) because the prefix of length
+\(p\) has no \(b\) in it.
+\end{enumerate}
+
+Since these are our only options, it must be impossible to satisfy the
+requirements of pumping lemma, hence, by contradiction, the language \(L\) is
+not regular.
+
+\subsection{Problem 2}
+\label{sec:orgheadline4}
+Prove that the language
+\begin{align*}
+  L = \{w \in \{x, y\}^* \;|\; (w = x^k(yyyy)^{m!},
+  k,m \geq 2) \lor w = y^{2l}, l \geq 2 \}
+\end{align*}
+
+is not regular.
+
+\subsubsection{Answer 2}
+\label{sec:orgheadline3}
+Suppose, for contradiction \(L\) is regular, then pumping lemma must be
+applicable to it.  Consider the substrings of \(y^{2(p+1)}\), where \(p\) is the
+pumping lenght.  Consider the second condition of pumping lemma, i.e. that
+the prefix concatenated to the pumping substring should be no longer than
+the pumping lenght, thus \(\abs{vw} \leq p\), this leaves us with the prefix
+of at most \(y\) repeated \(p\) times, but if we repeat it, we will produce the
+string \(y^{2(p+1)+p} = y^{2+3p}\).  Provided \(p > 2\), this string will be too
+short to satisfy the requirements of the lemma.  Hence, the original
+conjecture is falsified, hence \(L\) is not regualr.
+
+\subsection{Problem 3}
+\label{sec:orgheadline6}
+Let \(L\) be a regular language over alphabet \(\Sigma\).  Prove that the following
+languagage is also regular.
+
+\begin{align*}
+  Reversed(\mu_1 \mu_2 \dots \mu_n, n) = &\mu_1, \mu_2, \dots, \mu_n \in \Sigma, \\
+                                         &\mu_1 \mu_2 \dots \mu_n \in L^R. \\
+  Interleaved(\mu_1 \mu_2 \dots \mu_n, n) = &\exists (\sigma_1, \sigma_2, \dots, \sigma_n,
+                                              \zeta_1, \zeta_2, \dots, \zeta_n \in \Sigma): \\
+                                         &(\mu_1 \sigma_1 \zeta_1 \mu_2 \sigma_2 \zeta_2 
+                                           \dots \mu_n \sigma_n \zeta_n \in L) \\
+  \hat{L} = \{ &\mu_1 \mu_2 \dots \mu_n \;|\; \\
+                                         &n \geq 0, \\
+                                         &Reversed(\mu_1 \mu_2 \dots \mu_n, n), \\
+                                         &Interleaved(\mu_1 \mu_2 \dots \mu_n, n) \}
+\end{align*}
+
+And whenever \(\epsilon \in L\), it is also the case that \(\epsilon \in \hat{L}\).
+
+\subsubsection{Answer 3}
+\label{sec:orgheadline5}
+First I note that \(L^R\) is also regular, this is so because there must be a
+DFA accepting \(L\) (by definition), we can transform this DFA in the following way:
+\begin{enumerate}
+\item Reverse all transitions.
+\item Make the start state an accepting one.
+\item Make all previously accepting states connect to a newly added start state by
+\(\epsilon\)-transitions.  Thus we obtain an NFA for the reversed language.
+\end{enumerate}
+
+Thus, \(Rverersed(\dots)\) alone selects a regular language.
+
+Next, I note that regular languages are closed under intersection.  Thus
+proving that \(Interleaved(\dots)\) predicate selects a regular language will
+prove that \(\hat{L}\) is regular, but we are given by definition, that
+\(Interleaved(\dots)\) selects the language \(L\), or some regular subset of it,
+hence \(\hat{L}\) must be regular.  The subset is regular because it can be
+given by regular expression \((\mu+\sigma+\zeta)^*\).
+
+\subsection{Problem 4}
+\label{sec:orgheadline7}
+Let \(L\) be a regular language over \(\Sigma\).  Prove that the following
+language is also regular:
+\begin{align*}
+  \frac{1}{3}L = \{ w \in \Sigma^* \;|\; wxy \in L, \abs{x} = \abs{y} = \abs{w} \}
+\end{align*}
+
+\subsection{Problem 5}
+\label{sec:orgheadline8}
+\begin{enumerate}
+\item Write regular expression accepting the language \(0^*01*/0^+\).
+\item Prove that if \(L\) is regular then
+\(\overset{\leftrightarrow}{L}=\{xy \in \Sigma^* \;|\; yx \in
+      L\}\).
+\item What is wrong with \(\overset{\leftrightarrow}{L} = (\Sigma^*
+      \setminus L) \cdot (L / \Sigma^*)\) if it was offered as a solution for the
+previous question?
+\end{enumerate}
+\end{document}
