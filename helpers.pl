@@ -1,7 +1,14 @@
+:- doc_server(4000).    % Start PlDoc at port 4000
+:- portray_text(true).  % Enable portray of strings
+%% :- use_module(library(pldoc/doc_library)).
+
 :- use_module(library(lists)).
-:- use_module('automata/interface').
-:- use_module('automata/convert').
-:- use_module('automata/printing').
+:- use_module(automata).
+:- use_module(automata(convert)).
+:- use_module(automata(printing)).
+
+%% :- doc_load_library.
+:- doc_collect(true).
 
 concatentated_member(L1, L2, L3) :-
     member(M1, L1), member(M2, L2),

@@ -1,6 +1,8 @@
-:- module('automata/interface',
+:- module('automata',
           [match_regex/2        % :Pred, +Regex, +String
            ]).
+
+user:file_search_path(automata, './automata').
 
 /** <module> High-level predicates for dealing with regular expressions
 
@@ -14,7 +16,8 @@ using regular expressions.
 :- meta_predicate
        match_regex(+, +).
 
-:- use_module(automata/convert).
+:- use_module(automata(convert)).
+:- use_module(library(pldoc)).
 
 %%
 %% regex matching
