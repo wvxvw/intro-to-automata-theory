@@ -1,4 +1,4 @@
-% Created 2015-09-12 Sat 18:46
+% Created 2015-09-13 Sun 14:32
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -88,7 +88,7 @@
 \clearpage
 
 \section{Problems}
-\label{sec:orgheadline9}
+\label{sec:orgheadline13}
 
 \subsection{Problem 1}
 \label{sec:orgheadline2}
@@ -182,26 +182,63 @@ Next, I note that regular languages are closed under intersection.  Thus
 proving that \(Interleaved(\dots)\) predicate selects a regular language will
 prove that \(\hat{L}\) is regular, but we are given by definition, that
 \(Interleaved(\dots)\) selects the language \(L\), or some regular subset of it,
-hence \(\hat{L}\) must be regular.  The subset is regular because it can be
-given by regular expression \((\mu+\sigma+\zeta)^*\).
+hence \(\hat{L}\) must be regular.  The subset is regular because it is
+essentially given to us by a regular expression \((\mu_n \sigma_n
+    \zeta_n)^*\), where \(\mu_n\), \(\sigma_n\) and \(\zeta_n\) are character classes
+of size at most \(n\).
 
 \subsection{Problem 4}
-\label{sec:orgheadline7}
+\label{sec:orgheadline8}
 Let \(L\) be a regular language over \(\Sigma\).  Prove that the following
 language is also regular:
 \begin{align*}
   \frac{1}{3}L = \{ w \in \Sigma^* \;|\; wxy \in L, \abs{x} = \abs{y} = \abs{w} \}
 \end{align*}
 
+\subsubsection{Answer 4}
+\label{sec:orgheadline7}
+The language \(\frac{1}{3}L\) is regular because it is possible to construct a
+regular expression accepting it.  Since we know that regular languages are
+closed under concatenation, we can devise a regular expression accepting the
+\(w\) part of the language \(L\), and, similarly, for the \(xy\) part.  The
+regular expression accepting the \(w\) part guarantees us that the language
+\(\frac{1}{3}L\) is regular.
+
 \subsection{Problem 5}
-\label{sec:orgheadline8}
+\label{sec:orgheadline12}
 \begin{enumerate}
-\item Write regular expression accepting the language \(0^*01*/0^+\).
+\item Write regular expression accepting the language \(0^*01^*/0^+\).
 \item Prove that if \(L\) is regular then
 \(\overset{\leftrightarrow}{L}=\{xy \in \Sigma^* \;|\; yx \in
       L\}\).
 \item What is wrong with \(\overset{\leftrightarrow}{L} = (\Sigma^*
-      \setminus L) \cdot (L / \Sigma^*)\) if it was offered as a solution for the
+      \setminus L).(L / \Sigma^*)\) if it was offered as a solution for the
 previous question?
 \end{enumerate}
+
+\subsubsection{Answer 5}
+\label{sec:orgheadline9}
+\(0^*01^*/0^+ = 0^*01^+\).  The rationale for this answer is that the string
+in this language cannot end in 0, but the original regex would not accept
+strings \(0^k\) where \(k < 2\), thus we have the result, where at least one
+zero must be followed by at least one one.
+
+\subsubsection{Answer 6}
+\label{sec:orgheadline10}
+The proof is immediate from concatenation closure properties: Languages of
+\(x's\) and \(y's\) must be regular, because \(L\) is regular. Hence their
+concatenation \(xy\) is regular too.
+
+\subsubsection{Answer 7}
+\label{sec:orgheadline11}
+Assuming backwards slash means left quotient rather than complement, then
+the general idea for the proof seems to be a workable one, except that one
+shouldn't use the same character \(L\) to denote languages made of \(x's\) and
+\(y's\).  To fix this, we could do the following:
+
+\begin{align*}
+  L_y &= L / \{ x \} \\
+  L_x &= L \setminus \{ y \} \\
+  \overset{\leftrightarrow}{L} &= (L \setminus L_y).(L / L_x)
+\end{align*}
 \end{document}

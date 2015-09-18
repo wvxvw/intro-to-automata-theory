@@ -174,7 +174,10 @@
     proving that $Interleaved(\dots)$ predicate selects a regular language will
     prove that $\hat{L}$ is regular, but we are given by definition, that
     $Interleaved(\dots)$ selects the language $L$, or some regular subset of it,
-    hence $\hat{L}$ must be regular.  The subset is regular because.
+    hence $\hat{L}$ must be regular.  The subset is regular because it is
+    essentially given to us by a regular expression $(\mu_n \sigma_n
+    \zeta_n)^*$, where $\mu_n$, $\sigma_n$ and $\zeta_n$ are character classes
+    of size at most $n$.
 
 ** Problem 4
    Let $L$ be a regular language over $\Sigma$.  Prove that the following
@@ -187,11 +190,46 @@
      \end{align*}
    #+END_SRC
 
+*** Answer 4
+    The language $\frac{1}{3}L$ is regular because it is possible to construct a
+    regular expression accepting it.  Since we know that regular languages are
+    closed under concatenation, we can devise a regular expression accepting the
+    $w$ part of the language $L$, and, similarly, for the $xy$ part.  The
+    regular expression accepting the $w$ part guarantees us that the language
+    $\frac{1}{3}L$ is regular.
+
 ** Problem 5
-   1. Write regular expression accepting the language $0^*01*/0^+$.
+   1. Write regular expression accepting the language $0^*01^*/0^+$.
    2. Prove that if $L$ is regular then
       $\overset{\leftrightarrow}{L}=\{xy \in \Sigma^* \;|\; yx \in
       L\}$.
    3. What is wrong with $\overset{\leftrightarrow}{L} = (\Sigma^*
-      \setminus L) \cdot (L / \Sigma^*)$ if it was offered as a solution for the
+      \setminus L).(L / \Sigma^*)$ if it was offered as a solution for the
       previous question?
+
+*** Answer 5
+    $0^*01^*/0^+ = 0^*01^+$.  The rationale for this answer is that the string
+    in this language cannot end in 0, but the original regex would not accept
+    strings $0^k$ where $k < 2$, thus we have the result, where at least one
+    zero must be followed by at least one one.
+
+*** Answer 6
+    The proof is immediate from concatenation closure properties: Languages of
+    $x's$ and $y's$ must be regular, because $L$ is regular. Hence their
+    concatenation $xy$ is regular too.
+
+*** Answer 7
+    Assuming backwards slash means left quotient rather than complement, then
+    the general idea for the proof seems to be a workable one, except that one
+    shouldn't use the same character $L$ to denote languages made of $x's$ and
+    $y's$.  To fix this, we could do the following:
+
+    #+HEADER: :exports results
+    #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+    #+BEGIN_SRC latex
+      \begin{align*}
+        L_y &= L / \{ x \} \\
+        L_x &= L \setminus \{ y \} \\
+        \overset{\leftrightarrow}{L} &= (L \setminus L_y).(L / L_x)
+      \end{align*}
+    #+END_SRC

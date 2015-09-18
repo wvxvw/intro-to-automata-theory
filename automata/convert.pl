@@ -1,68 +1,30 @@
-:- module(automata, [rterminal/1, runion/2, rstar/1, rconcat/2, regex/1,
-                     gstar/3, gunion/3, gchar/3, gstarred/3, gexp/3, gexps/3,
-                     vexp/3, regex_to_string/2, vregex_to_nfa/2, regex_to_nfa/2,
-                     nfa_inputs/2, nfa_states/2, nfa_state/3, nfa_state_input/4,
-                     nfa_table/2, format_table/1]).
+:- module('automata/convert',
+          [vregex_to_nfa/2,
+           regex_to_nfa/2,
+           nfa_inputs/2,
+           nfa_states/2,
+           nfa_state/3,
+           nfa_state_input/4,
+           nfa_table/2
+           ]).
 
-rterminal([]).                  % this is epsilon
-rterminal(X)  :- atom(X).
-runion(X, Y)  :- regex(X), regex(Y).
-rstar(X)      :- regex(X).
-rconcat(X, Y) :- regex(X), regex(Y).
-regex(X)      :- rterminal(X) ;
-                 X = runion(Y, Z), regex(Y), regex(Z) ;
-                 X = rstar(Y), regex(Y) ;
-                 X = rconcat(Y, Z), regex(Y), regex(Z).
+:- meta_predicate
+       vregex_to_nfa(+, -),
+       regex_to_nfa(+, -),
+       nfa_inputs(+, -),
+       nfa_states(+, -),
+       nfa_state(+, +, -),
+       nfa_state_input(+, +, +, -),
+       nfa_table(+, -).
 
-gstar_helper(rstar(S), [Y, 42 | Ys], Acc, Xs) :-
-    append(Acc, [Y], Test),
-    phrase(gstarred(S), Test),
-    Xs = Ys.
-gstar_helper(Exp, [Y, Z | Ys], Acc, Xs) :-
-    append(Acc, [Y], Test),
-    gstar_helper(Exp, [Z | Ys], Test, Xs).
-gstar(rstar(S), [X, 42 | Xs], Xs) :- phrase(gchar(S), [X]).
-gstar(Exp, [X, Y | Ys], Xs) :-
-    gstar_helper(Exp, [Y | Ys], [X], Xs).
+:- use_module('automata/parser').
 
-gunion_helper(runion(R, L), [Y, 43 | Ys], Acc, Xs) :-
-    append(Acc, [Y], Test),
-    phrase(gexps(R), Test),
-    phrase(gexps(L), Ys, Xs).
-gunion_helper(Exp, [Y, Z | Ys], Acc, Xs) :-
-    append(Acc, [Y], Test),
-    gunion_helper(Exp, [Z | Ys], Test, Xs).
-    
-gunion(runion(R, L), [X, 43 | Xs], Ys) :-
-    phrase(gchar(R), [X]), phrase(gexp(L), Xs, Ys).
-gunion(Exp, [X, Y | Ys], Xs) :-
-    gunion_helper(Exp, [Y | Ys], [X], Xs).
+%%
+%% regular expression to NFA conversion
+%% 
 
-gchar(rterminal(C), [X | Xs], Xs) :-
-    %% Our regex character class is somewhat limited...
-    member(X, `abcdefghjklmnopqrstuvwxyzABCDEFGHJKLMNOPQRSTUVWXYZ012345678`),
-    char_code(C, X).
-
-gstarred(Node) -->
-    gstar(Node) ;
-    "(", gexps(Node), ")" ;
-    gchar(Node).
-
-gexp(Node) --> gstarred(Node) ; gunion(Node).
-
-gexps(Tree) -->
-    gexp(Tree) ;
-    gexp(Node), gexps(Rest), { Tree = rconcat(Node, Rest) }.
-
-vexp(rterminal(C))  --> { char_code(C, R) }, [R].
-vexp(runion(L, R))  --> "(", vexp(L), "+", vexp(R), ")".
-vexp(rstar(E))      --> "(", vexp(E), ")*".
-vexp(rconcat(L, R)) --> vexp(L), vexp(R).
-
-regex_to_string(Exp, Result) :-
-    phrase(Exp, Codes), text_to_string(Codes, Result).
-
-vre_to_nfa_helper(rterminal(X), From, To, [trn(From, To, X)], P, P).
+vre_to_nfa_helper(rterminal(X), From, To, [trn(From, To, X, Final)], P, P) :-
+    ( To = 1 -> Final = true ; Final = false ).
 vre_to_nfa_helper(rconcat(L, R), From, To, Diagram, Prev, Next) :-
     Next1 is Prev + 1,
     vre_to_nfa_helper(L, From, Prev, Left, Next1, Next2),
@@ -90,7 +52,7 @@ regex_to_nfa(Regex, Diagram) :-
     vregex_to_nfa(Parsed, Diagram).
 
 nfa_inputs_helper([], X, X).
-nfa_inputs_helper([trn(_, _, X) | Diagram], Acc, Inputs) :-
+nfa_inputs_helper([trn(_, _, X, _) | Diagram], Acc, Inputs) :-
     ( member(X, Acc) ->
           nfa_inputs_helper(Diagram, Acc, Inputs) ;
       nfa_inputs_helper(Diagram, [X | Acc], Inputs) ).
@@ -98,7 +60,7 @@ nfa_inputs(Diagram, Inputs) :-
     nfa_inputs_helper(Diagram, [], Inputs).
 
 nfa_states_helper([], X, X).
-nfa_states_helper([trn(From, To, _) | Diagram], Acc, States) :-
+nfa_states_helper([trn(From, To, _, _) | Diagram], Acc, States) :-
     ( member(From, Acc) ->
           ( member(To, Acc) ->
                 nfa_states_helper(Diagram, Acc, States) ;
@@ -109,7 +71,7 @@ nfa_states_helper([trn(From, To, _) | Diagram], Acc, States) :-
 nfa_states(Diagram, States) :-
     nfa_states_helper(Diagram, [], States).
 
-nfa_state_n(N, trn(N, _, _)).
+nfa_state_n(N, trn(N, _, _, _)).
 
 nfa_state(Diagram, N, State) :-
     include(nfa_state_n(N), Diagram, State).
@@ -127,11 +89,11 @@ nfa_state_input_cached(State, States, Result, Cache) :-
                   nfa_state_input_cached(F, States, Y, Cache1)), Res2),
       append(Cache, Res2, Result) ).
 
-nfa_state_to([], To, trn(From, To1, []), States) :-
+nfa_state_to([], To, trn(From, To1, [], _), States) :-
     include(nfa_nth_state(To1), States, State),
     [[_, Row]] = State,
     nfa_state_input_cached(Row, States, To, [From, To1]).
-nfa_state_to(Input, To, trn(_, To, Input), _) :- atom(Input).
+nfa_state_to(Input, To, trn(_, To, Input, _), _) :- atom(Input).
 
 nfa_state_input(Input, State, States, Result) :-
     findall(To, (member(S, State), nfa_state_to(Input, To, S, States)), Interim),
@@ -139,7 +101,7 @@ nfa_state_input(Input, State, States, Result) :-
     list_to_set(Inter1, Inter2),
     ( Inter2 = [] ->
           ( Input = [] ->
-                [trn(N, _, _), _] = State, Result = [N] ;
+                [trn(N, _, _, _), _] = State, Result = [N] ;
             Result = [e] ) ;
       Result = Inter2 ).
 
@@ -153,10 +115,18 @@ nfa_table(Diagram, table(Inputs, Table)) :-
     findall([X, Y], (member(X, States), nfa_state(Diagram, X, Y)), StatesL),
     nfa_table_helper(StatesL, StatesL, Inputs, [], Table).
 
-format_table_helper([]).
-format_table_helper([row(N, Row) | Table]) :-
-    format('~d | ~w |~n', [N, Row]),
-    format_table_helper(Table).
-format_table(table(Inputs, Table)) :-
-    format('~w~n', [Inputs]),
-    format_table_helper(Table).
+nfa_to_dfa_row(Row, Inputs, Result). % TODO
+
+nfa_to_dfa_helper(_, _, [], Dfa, Dfa).
+nfa_to_dfa_helper(Inputs, Table, [state(N, Accepting) | Todo], Acc, Dfa) :-
+    include(nfa_nth_state(N), Table, Filtered),
+    [_, [Row]] = Filtered,
+    nfa_to_dfa_row(Row, Inputs, Result),
+    ord_subtract(Acc, Result, New),
+    ( New = [] -> nfa_to_dfa_helper(Inputs, Table, Todo, Acc, Dfa) ;
+      append(New, Todo, Next),
+      nfa_to_dfa_helper(Inputs, Table, Next, Acc, Dfa) ).
+
+nfa_to_dfa(Nfa, Dfa) :-
+    nfa_table(Nfa, table(Inputs, Table)),
+    nfa_to_dfa_helper(Inputs, Table, [state(1, false)], [], Dfa).

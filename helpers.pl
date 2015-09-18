@@ -1,5 +1,7 @@
 :- use_module(library(lists)).
-:- use_module(automata).
+:- use_module('automata/interface').
+:- use_module('automata/convert').
+:- use_module('automata/printing').
 
 concatentated_member(L1, L2, L3) :-
     member(M1, L1), member(M2, L2),
@@ -13,3 +15,6 @@ test_automata :-
     regex_to_nfa(`x(y+x)*+z`, X),
     nfa_table(X, Y),
     format_table(Y).
+
+test_match :-
+    match_regex(`x(y+x)*+z`, `xyyxxxyxxy`).
