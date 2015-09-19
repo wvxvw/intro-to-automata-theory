@@ -42,7 +42,7 @@ vre_to_nfa_helper(rstar(X), From, To, Diagram, Prev, Next) :-
     vre_to_nfa_helper(rterminal([]), From, Prev, Left, Next0, Next1),
     vre_to_nfa_helper(rterminal([]), From, To, Long, Next0, Next1),
     vre_to_nfa_helper(rterminal([]), MidRight, To, Right, Next1, Next2),
-    vre_to_nfa_helper(rterminal([]), To, Prev, Back, Next2, Next3),
+    vre_to_nfa_helper(rterminal([]), MidRight, Prev, Back, Next2, Next3),
     vre_to_nfa_helper(X, Prev, MidRight, Forward, Next3, Next),
     append([Left, Long, Right, Back, Forward], Diagram).
 vregex_to_nfa(Regex, Diagram) :-
@@ -137,31 +137,74 @@ reacheable_states(Input, Trans, _, Result) :-
     include(transition_input(Input), Trans, Dest),
     findall(X, (member(T, Dest), transition_to(X, T)), Result).
 
+ensure_state(state(N, _), [], [], _, [N]).
+ensure_state(_, Input, State, All, Cell) :-
+     reacheable_states(Input, State, All, Cell).
+
 nfa_table_helper([], _, _, X, X).
 nfa_table_helper([[N, State] | States], All, Inputs, Acc, Table) :-
-    findall(X, (member(Y, Inputs), reacheable_states(Y, State, All, X)), Row),
+    findall(X, (member(Y, Inputs), ensure_state(N, Y, State, All, X)), Row),
     nfa_table_helper(States, All, Inputs, [row(N, Row) | Acc], Table).
 nfa_table(Diagram, table(Inputs, Table)) :-
     nfa_inputs(Diagram, Inputs),
     nfa_states(Diagram, States),
     findall([X, Y], (member(X, States), nfa_state(Diagram, X, Y)), StatesL),
-    nfa_table_helper(StatesL, StatesL, Inputs, [], Table).
+    nfa_table_helper(StatesL, StatesL, Inputs, [], UnsortedTable),
+    sort(1, @<, UnsortedTable, Table).
 
-nfa_to_dfa_row(Row, Inputs, Result). % TODO
+%%
+%% NFA -> DFA
+%% 
 
-nfa_to_dfa_helper(_, _, [], Dfa, Dfa).
-nfa_to_dfa_helper(Inputs, Table, [state(N, Accepting) | Todo], Acc, Dfa) :-
-    include(nfa_nth_state(N), Table, Filtered),
-    [_, [Row]] = Filtered,
-    nfa_to_dfa_row(Row, Inputs, Result),
-    ord_subtract(Acc, Result, New),
-    (
-        New = [] -> nfa_to_dfa_helper(Inputs, Table, Todo, Acc, Dfa)
-     ;
-     append(New, Todo, Next),
-     nfa_to_dfa_helper(Inputs, Table, Next, Acc, Dfa)
-    ).
+states_for_input(Input, Inputs, Row, States) :-
+    nth0(Index, Inputs, Input),
+    nth0(Index, Row, States).
 
-nfa_to_dfa(Nfa, Dfa) :-
+nth_row_accepts(Table, N) :-
+    member(row(state(N, true), _), Table).
+
+reacheable_epsilon(From, Input, table(Inputs, Table),
+                   state(States, Accepting)) :-
+    findall(X, (member(row(state(From, _), Row), Table),
+                states_for_input(Input, Inputs, Row, X)),
+            StatesTree),
+    flatten(StatesTree, Prefix),
+    findall(Y, (member(P, Prefix),
+                member(row(state(P, _), Row1), Table),
+                states_for_input([], Inputs, Row1, Y)),
+            StatesRawTree),
+    flatten(StatesRawTree, StatesUnsorted),
+    sort(StatesUnsorted, States),
+    include(nth_row_accepts(Table), States, Final),
+    ( Final = [] -> Accepting = false ; Accepting = true ).
+
+merge_states(state(Y, _), X, Z) :- append(X, Y, Z).
+
+nfa_to_dfa_helper(_, _, [], Dfa-Dfa).
+nfa_to_dfa_helper(table(Inputs, Table), Cache,
+                  [state(T, A) | Todo], Dfa-Afd) :-
+    exclude('='([]), Inputs, In),
+    findall(X,
+            (member(I, In),
+             findall(Y,
+                     (member(From, T),
+                      reacheable_epsilon(From, I, table(Inputs, Table), Y)),
+                     Xs),
+             flatten(Xs, X)),
+            Dest),
+    findall(Z, (member(D, Dest),
+                foldl(merge_states, D, [], Z)),
+            Row),
+    flatten(Dest, FlatDest),
+    ord_subtract(FlatDest, Cache, CleanDest),
+    append(CleanDest, Cache, NewCache),
+    append(CleanDest, Todo, NewTodo),
+    nfa_to_dfa_helper(table(Inputs, Table),
+                      NewCache, NewTodo, Dfa-[row(state(T, A), Row) | Afd]).
+
+nfa_to_dfa(Nfa, table(In, DfaTable)) :-
     nfa_table(Nfa, table(Inputs, Table)),
-    nfa_to_dfa_helper(Inputs, Table, [state(1, false)], [], Dfa).
+    nfa_to_dfa_helper(table(Inputs, Table), [], [state([0], false)], UnsortedDfa-[]),
+    sort([1, 1], @<, UnsortedDfa, DfaTable),
+    exclude('='([]), Inputs, In).
+    

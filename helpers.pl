@@ -16,14 +16,20 @@ concatentated(L1, L2, L3) :-
     findall(X, concatentated_member(L1, L2, X), X),
     list_to_set(X, L3).
 
-test_automata :-
+test_automata(X) :-
     regex_to_nfa(`x(y+x)*+z`, X),
     nfa_table(X, Y),
     format_table(Y).
 
 test_nfa_to_dfa(Dfa) :-
     regex_to_nfa(`x(y+x)*+z`, Nfa),
-    nfa_to_dfa(Nfa, Dfa).
+    nfa_to_dfa(Nfa, Dfa),
+    format_table(Dfa).
 
 test_match :-
     match_regex(`x(y+x)*+z`, `xyyxxxyxxy`).
+
+test_reacheable_epsilon(States) :-
+    regex_to_nfa(`x(y+x)*+z`, X),
+    nfa_table(X, Y),
+    'automata/convert':reacheable_epsilon(3, x, Y, States).
