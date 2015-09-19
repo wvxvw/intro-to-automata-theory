@@ -1,13 +1,11 @@
 :- doc_server(4000).    % Start PlDoc at port 4000
 :- portray_text(true).  % Enable portray of strings
-%% :- use_module(library(pldoc/doc_library)).
 
 :- use_module(library(lists)).
 :- use_module(automata).
 :- use_module(automata(convert)).
 :- use_module(automata(printing)).
 
-%% :- doc_load_library.
 :- doc_collect(true).
 
 concatentated_member(L1, L2, L3) :-
@@ -22,6 +20,10 @@ test_automata :-
     regex_to_nfa(`x(y+x)*+z`, X),
     nfa_table(X, Y),
     format_table(Y).
+
+test_nfa_to_dfa(Dfa) :-
+    regex_to_nfa(`x(y+x)*+z`, Nfa),
+    nfa_to_dfa(Nfa, Dfa).
 
 test_match :-
     match_regex(`x(y+x)*+z`, `xyyxxxyxxy`).

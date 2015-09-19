@@ -4,8 +4,9 @@
            nfa_inputs/2,
            nfa_states/2,
            nfa_state/3,
-           nfa_state_input/4,
-           nfa_table/2
+           reacheable_states/4,
+           nfa_table/2,
+           nfa_to_dfa/2
            ]).
 
 :- meta_predicate
@@ -14,8 +15,9 @@
        nfa_inputs(+, -),
        nfa_states(+, -),
        nfa_state(+, +, -),
-       nfa_state_input(+, +, +, -),
-       nfa_table(+, -).
+       reacheable_states(+, +, +, -),
+       nfa_table(+, -),
+       nfa_to_dfa(+, -).
 
 :- use_module('automata/parser').
 
@@ -53,61 +55,91 @@ regex_to_nfa(Regex, Diagram) :-
 
 nfa_inputs_helper([], X, X).
 nfa_inputs_helper([trn(_, _, X, _) | Diagram], Acc, Inputs) :-
-    ( member(X, Acc) ->
-          nfa_inputs_helper(Diagram, Acc, Inputs) ;
-      nfa_inputs_helper(Diagram, [X | Acc], Inputs) ).
+    (
+        member(X, Acc) ->
+            nfa_inputs_helper(Diagram, Acc, Inputs) ;
+        nfa_inputs_helper(Diagram, [X | Acc], Inputs)
+    ).
 nfa_inputs(Diagram, Inputs) :-
     nfa_inputs_helper(Diagram, [], Inputs).
 
-nfa_states_helper([], X, X).
-nfa_states_helper([trn(From, To, _, _) | Diagram], Acc, States) :-
-    ( member(From, Acc) ->
-          ( member(To, Acc) ->
-                nfa_states_helper(Diagram, Acc, States) ;
-            nfa_states_helper(Diagram, [To | Acc], States) ) ;
-      ( member(To, Acc) ->
-            nfa_states_helper(Diagram, [From | Acc], States) ;
-        nfa_states_helper(Diagram, [From, To | Acc], States) ) ).
+transition_from(From, trn(From, _, _, _)).
+transition_to(To, trn(_, To, _, _)).
+transition_input(Input, trn(_, _, Input, _)).
+transition_accept(Accept, trn(_, _, _, Accept)).
+
+accepting(N, Diagram, true) :-
+    include(transition_to(N), Diagram, [trn(_, _, _, true) | _]), !.
+accepting(_, _, false).
+
+nfa_states_helper([], _, X, X).
+nfa_states_helper([trn(From, To, _, _) | Diagram], Transitions, Acc, States) :-
+    accepting(From, Transitions, FromAcc),
+    accepting(To, Transitions, ToAcc),
+    (
+        member(state(From, FromAcc), Acc) ->
+            (
+                member(state(To, ToAcc), Acc) ->
+                    nfa_states_helper(Diagram, Transitions, Acc, States)
+             ;
+             nfa_states_helper(
+                     Diagram, Transitions, [state(To, ToAcc) | Acc], States)
+            )
+     ;
+     (
+         member(state(To, ToAcc), Acc) ->
+             nfa_states_helper(
+                     Diagram, Transitions, [state(From, FromAcc) | Acc], States)
+      ;
+      nfa_states_helper(
+              Diagram,
+              Transitions,
+              [state(From, FromAcc), state(To, ToAcc) | Acc],
+              States)
+     )
+    ).
 nfa_states(Diagram, States) :-
-    nfa_states_helper(Diagram, [], States).
+    nfa_states_helper(Diagram, Diagram, [], States).
 
-nfa_state_n(N, trn(N, _, _, _)).
+nfa_state(Diagram, state(N, _), State) :-
+    include(transition_from(N), Diagram, State).
 
-nfa_state(Diagram, N, State) :-
-    include(nfa_state_n(N), Diagram, State).
+nfa_nth_state(N, [state(N, _), _]).
 
-nfa_nth_state(N, [N, _]).
+reacheable_states_helper([], All, _, All).
+reacheable_states_helper(NextGen, Cache, Table, All) :-
+    NextGen \== [],
+    append(NextGen, Cache, NewCache),
+    reacheable_states_rec(NextGen, Table, NewCache, All).
 
-nfa_state_input_cached(State, States, Result, Cache) :-
-    findall(To, (member(S, State), nfa_state_to([], To, S, States)), Interim),
-    ord_subtract(Interim, Cache, Res),
-    ( Res = [] -> Result = Cache ;
-      flatten(Res, Res1),
-      append(Interim, Res1, Cache1),
-      findall(X, (member(R, Res1), member([R, X], States)), Filtered),
-      findall(Y, (member(F, Filtered), 
-                  nfa_state_input_cached(F, States, Y, Cache1)), Res2),
-      append(Cache, Res2, Result) ).
+reacheable_states_rec(Previous, Table, Cached, All) :-
+    findall(Trans,
+            (member(T, Previous),
+             member([state(T, _), Ts], Table),
+             nfa_nth_state(T, [_, Ts]),
+             include(transition_input([]), Ts, AllTrans),
+             findall(X,
+                     (member(M, AllTrans), transition_to(X, M)),
+                     AllStates),
+             ord_subtract(AllStates, Cached, Trans)),
+            ResultTree),
+    flatten(ResultTree, Result),
+    reacheable_states_helper(Result, Cached, Table, All).
 
-nfa_state_to([], To, trn(From, To1, [], _), States) :-
-    include(nfa_nth_state(To1), States, State),
-    [[_, Row]] = State,
-    nfa_state_input_cached(Row, States, To, [From, To1]).
-nfa_state_to(Input, To, trn(_, To, Input, _), _) :- atom(Input).
-
-nfa_state_input(Input, State, States, Result) :-
-    findall(To, (member(S, State), nfa_state_to(Input, To, S, States)), Interim),
-    flatten(Interim, Inter1),
-    list_to_set(Inter1, Inter2),
-    ( Inter2 = [] ->
-          ( Input = [] ->
-                [trn(N, _, _, _), _] = State, Result = [N] ;
-            Result = [e] ) ;
-      Result = Inter2 ).
+reacheable_states([], [Tr | Trans], Table, Result) :-
+    include(transition_input([]), [Tr | Trans], Dest),
+    transition_from(Self, Tr),
+    findall(X, (member(T, Dest), transition_to(X, T)), Dests),
+    union(Dests, [Self], Cache),
+    reacheable_states_rec(Dests, Table, Cache, Result).
+reacheable_states(Input, Trans, _, Result) :-
+    Input \== [],
+    include(transition_input(Input), Trans, Dest),
+    findall(X, (member(T, Dest), transition_to(X, T)), Result).
 
 nfa_table_helper([], _, _, X, X).
 nfa_table_helper([[N, State] | States], All, Inputs, Acc, Table) :-
-    findall(X, (member(Y, Inputs), nfa_state_input(Y, State, All, X)), Row),
+    findall(X, (member(Y, Inputs), reacheable_states(Y, State, All, X)), Row),
     nfa_table_helper(States, All, Inputs, [row(N, Row) | Acc], Table).
 nfa_table(Diagram, table(Inputs, Table)) :-
     nfa_inputs(Diagram, Inputs),
@@ -123,9 +155,12 @@ nfa_to_dfa_helper(Inputs, Table, [state(N, Accepting) | Todo], Acc, Dfa) :-
     [_, [Row]] = Filtered,
     nfa_to_dfa_row(Row, Inputs, Result),
     ord_subtract(Acc, Result, New),
-    ( New = [] -> nfa_to_dfa_helper(Inputs, Table, Todo, Acc, Dfa) ;
-      append(New, Todo, Next),
-      nfa_to_dfa_helper(Inputs, Table, Next, Acc, Dfa) ).
+    (
+        New = [] -> nfa_to_dfa_helper(Inputs, Table, Todo, Acc, Dfa)
+     ;
+     append(New, Todo, Next),
+     nfa_to_dfa_helper(Inputs, Table, Next, Acc, Dfa)
+    ).
 
 nfa_to_dfa(Nfa, Dfa) :-
     nfa_table(Nfa, table(Inputs, Table)),

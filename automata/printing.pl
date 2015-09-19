@@ -25,7 +25,7 @@ regex_to_string(Exp, Result) :-
 
 format_table_helper([]).
 format_table_helper([row(N, Row) | Table]) :-
-    format('~d | ~w |~n', [N, Row]),
+    format('~w | ~w |~n', [N, Row]),
     format_table_helper(Table).
 format_table(table(Inputs, Table)) :-
     format('~w~n', [Inputs]),
