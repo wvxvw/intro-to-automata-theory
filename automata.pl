@@ -11,7 +11,7 @@ user:file_search_path(automata, './automata').
 This module defines predicates for searching and replacing in strings
 using regular expressions.
 
-@see	https://github.com/wvxvw/intro-to-automata-theory
+@see    https://github.com/wvxvw/intro-to-automata-theory
 */
 
 :- meta_predicate
@@ -48,12 +48,10 @@ suffix_regex_helper([S | Ss], Diagram, Trn, Suffix) :-
     trn_to(Trn, To),
     (
         step(To, C, Diagram, Next) ->
-            suffix_regex_helper(Ss, Diagram, Next, Suffix),
-            format('reading: ~w~n', [Suffix])
+            suffix_regex_helper(Ss, Diagram, Next, Suffix)
      ;
      trn_acc(Trn, true),
-     Suffix = [S | Ss],
-     format('else: ~w~n', [Suffix])
+     Suffix = [S | Ss]
     ).
              
 prepare_regex(Regex, Diagram) :-
@@ -72,23 +70,23 @@ start_trn(Diagram, S, Trn) :-
                 trn_input(T, C)),
             [Trn | _]).
 
-%%	match_regex(+Regex, +String) is det.
+%%  match_regex(+Regex, +String) is det.
 %
-%	Evaluates to true if String is accepted by Regex.
+%   Evaluates to true if String is accepted by Regex.
 %
-%	@see	match_suffix_regex/3, match_all_regex/3
+%   @see    match_suffix_regex/3, match_all_regex/3
 
 match_regex(Regex, [S | String]) :-
     prepare_regex(Regex, Diagram),
     start_trn(Diagram, S, Trn),
     match_regex_helper(String, Diagram, Trn).
 
-%%	match_suffix_regex(+Regex, +String, -Suffix) is det.
+%%  match_suffix_regex(+Regex, +String, -Suffix) is det.
 %
-%	Evaluates to true if Suffix is the remaining part of the String
-%	not matched by Regex.
+%   Evaluates to true if Suffix is the remaining part of the String
+%   not matched by Regex.
 %
-%	@see	match_regex/2, match_all_regex/3
+%   @see    match_regex/2, match_all_regex/3
 
 match_suffix_regex(Regex, [S | String], Suffix) :-
     prepare_regex(Regex, Diagram),
@@ -105,11 +103,11 @@ match_all_helper(N, Regex, String, Match) :-
     String = [_ | S],
     match_all_helper(N1, Regex, S, Match).
 
-%%	match_all_regex(+Regex, +String, -Match) is nondet.
+%%  match_all_regex(+Regex, +String, -Match) is nondet.
 %
-%	Instantiates Match to all possible matches of Regex in String.
+%   Instantiates Match to all possible matches of Regex in String.
 %
-%	@see	match_regex/2, match_suffix_regex/3
+%   @see    match_regex/2, match_suffix_regex/3
 
 match_all_regex(Regex, String, Match) :-
     match_all_helper(0, Regex, String, Match).

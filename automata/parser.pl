@@ -16,7 +16,7 @@
 This module defines DCG rules for parsing regular expressions from
 string.
 
-@see	https://github.com/wvxvw/intro-to-automata-theory
+@see    https://github.com/wvxvw/intro-to-automata-theory
 */
 
 :- use_module('automata/ast').
@@ -29,12 +29,12 @@ gstar_helper(Exp, [Y, Z | Ys], Acc, Xs) :-
     append(Acc, [Y], Test),
     gstar_helper(Exp, [Z | Ys], Test, Xs).
 
-%%	gstar(+Exp, +Prefix, -Suffix) is det.
+%%  gstar(+Exp, +Prefix, -Suffix) is det.
 %
-%	Parses a regular expression followed by an asterisk (the Kleene
-%	operator).  Instantiates its first term to the rstar AST nonterminal.
+%   Parses a regular expression followed by an asterisk (the Kleene
+%   operator).  Instantiates its first term to the rstar AST nonterminal.
 %
-%	@see	rstar/1
+%   @see    rstar/1
 
 gstar(rstar(S), [X, 42 | Xs], Xs) :- phrase(gchar(S), [X]).
 gstar(Exp, [X, Y | Ys], Xs) :-
@@ -48,24 +48,24 @@ gunion_helper(Exp, [Y, Z | Ys], Acc, Xs) :-
     append(Acc, [Y], Test),
     gunion_helper(Exp, [Z | Ys], Test, Xs).
     
-%%	gunion(+Exp, +Prefix, -Suffix) is det.
+%%  gunion(+Exp, +Prefix, -Suffix) is det.
 %
-%	Parses a union of two regular expressions joined by the `+` sign.
-%	Instantiates its first term to the runion AST nonterminal.
+%   Parses a union of two regular expressions joined by the `+` sign.
+%   Instantiates its first term to the runion AST nonterminal.
 %
-%	@see	runion/2
+%   @see    runion/2
 
 gunion(runion(R, L), [X, 43 | Xs], Ys) :-
     phrase(gchar(R), [X]), phrase(gexp(L), Xs, Ys).
 gunion(Exp, [X, Y | Ys], Xs) :-
     gunion_helper(Exp, [Y | Ys], [X], Xs).
 
-%%	gchar(+Exp, +Prefix, -Suffix) is det.
+%%  gchar(+Exp, +Prefix, -Suffix) is det.
 %
-%	Parses a single terminal character and instantiates it to
-%	AST rterminal term.
+%   Parses a single terminal character and instantiates it to
+%   AST rterminal term.
 %
-%	@see	rterminal/1
+%   @see    rterminal/1
 
 gchar(rterminal(C), [X | Xs], Xs) :-
     %% Our regex character class is somewhat limited...
@@ -79,12 +79,12 @@ gstarred(Node) -->
 
 gexp(Node) --> gstarred(Node) ; gunion(Node).
 
-%%	gexps(+Tree, +Prefix, -Suffix) is det.
+%%  gexps(+Tree, +Prefix, -Suffix) is det.
 %
-%	Parses regular expression from the string Prefix and instantiates
-%	the Tree to the parse regex/1 term.
+%   Parses regular expression from the string Prefix and instantiates
+%   the Tree to the parse regex/1 term.
 %
-%	@see	regex/1
+%   @see    regex/1
 
 gexps(Tree) -->
     gexp(Tree) ;

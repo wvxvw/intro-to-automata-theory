@@ -59,7 +59,7 @@ This module also defines data types:
       To describe a complete table of transitions between all states
       of some automata.
 
-@see	https://github.com/wvxvw/intro-to-automata-theory
+@see    https://github.com/wvxvw/intro-to-automata-theory
 */
 
 :- use_module('automata/parser').
@@ -81,10 +81,10 @@ error:has_type(row, X) :- default_row(X).
 :- record row(state:state, trns:trns).
 :- record table(inputs:list(input), tab:list(row)).
 
-%%	has(+Accessor, ?Value, ?Record) is det.
+%%  has(+Accessor, ?Value, ?Record) is det.
 %
-%	Flips arguments for Accessr (the predicate generated to access
-%	fields of the record).
+%   Flips arguments for Accessr (the predicate generated to access
+%   fields of the record).
 
 has(Accessor, Value, Record) :- call(Accessor, Record, Value).
 
@@ -111,12 +111,12 @@ vre_to_nfa_helper(rstar(X), From, To, Diagram, Prev, Next) :-
 vregex_to_nfa(Regex, Diagram) :-
     vre_to_nfa_helper(Regex, 0, 1, Diagram, 2, _).
 
-%%	regex_to_nfa(+Regex, -Nfa) is det.
+%%  regex_to_nfa(+Regex, -Nfa) is det.
 %
-%	Evaluates to true when given regular expression Regex can be
-%	decomposed into a list of transitions Nfa.
+%   Evaluates to true when given regular expression Regex can be
+%   decomposed into a list of transitions Nfa.
 %
-%	@see	gexps/3
+%   @see    gexps/3
 
 regex_to_nfa(Regex, Diagram) :-
     phrase(gexps(Parsed), Regex),
@@ -131,9 +131,9 @@ nfa_inputs_helper([trn(_, _, X, _) | Diagram], Acc, Inputs) :-
         nfa_inputs_helper(Diagram, [X | Acc], Inputs)
     ).
 
-%%	nfa_inputs(+Nfa, -Inputs) is det.
+%%  nfa_inputs(+Nfa, -Inputs) is det.
 %
-%	Evaluates to true when Inputs is the alphabet of the Nfa automata.
+%   Evaluates to true when Inputs is the alphabet of the Nfa automata.
 
 nfa_inputs(Diagram, Inputs) :-
     nfa_inputs_helper(Diagram, [], Inputs).
@@ -169,9 +169,9 @@ nfa_states_helper([trn(From, To, _, _) | Diagram], Transitions, Acc, States) :-
      )
     ).
 
-%%	nfa_states(+Nfa, -States) is det.
+%%  nfa_states(+Nfa, -States) is det.
 %
-%	Evaluates to true when States is the states of the Nfa automata.
+%   Evaluates to true when States is the states of the Nfa automata.
 
 nfa_states(Diagram, States) :-
     nfa_states_helper(Diagram, Diagram, [], States).
@@ -204,10 +204,10 @@ reacheable_states_rec(Previous, Table, Cached, All) :-
     flatten(ResultTree, Result),
     reacheable_states_helper(Result, Cached, Table, All).
 
-%%	reacheable_states(+Input, +Transitions, +Table, -States) is det.
+%%  reacheable_states(+Input, +Transitions, +Table, -States) is det.
 %
-%	Evaluates to true when States can be reached from all Transitions
-%	on given Input.  This also accounts for epsilon transitions.
+%   Evaluates to true when States can be reached from all Transitions
+%   on given Input.  This also accounts for epsilon transitions.
 
 reacheable_states([], [Tr | Trans], Table, Result) :-
     include(has(trn_input, []), [Tr | Trans], Dest),
@@ -229,10 +229,10 @@ nfa_table_helper([[N, State] | States], All, Inputs, Acc, Table) :-
     findall(X, (member(Y, Inputs), ensure_state(N, Y, State, All, X)), Row),
     nfa_table_helper(States, All, Inputs, [row(N, Row) | Acc], Table).
 
-%%	nfa_table(+Transitions, -Table:table) is det.
+%%  nfa_table(+Transitions, -Table:table) is det.
 %
-%	Evaluates to true when Table is the transitions table containing
-%	all transitions given by Transitions.
+%   Evaluates to true when Table is the transitions table containing
+%   all transitions given by Transitions.
 
 nfa_table(Diagram, table(Inputs, Table)) :-
     nfa_inputs(Diagram, Inputs),
@@ -323,9 +323,9 @@ normalized_table(table(I, Denorm), table(I, Norm)) :-
                   make_row([state(NewSt), trns(NewTrns)], Row)),
             Norm).
 
-%%	nfa_to_dfa(+Nfa, -Dfa) is det.
+%%  nfa_to_dfa(+Nfa, -Dfa) is det.
 %
-%	Evaluates to true when Dfa accepts the same language as Nfa.
+%   Evaluates to true when Dfa accepts the same language as Nfa.
 
 nfa_to_dfa(Nfa, table(In, DfaTable)) :-
     nfa_table(Nfa, table(Inputs, Table)),
@@ -334,10 +334,10 @@ nfa_to_dfa(Nfa, table(In, DfaTable)) :-
     normalized_table(table(Inputs, SortedDfa), table(Inputs, DfaTable)),
     exclude('='([]), Inputs, In).
 
-%%	table_to_diagram(+Table, -Diagram) is det.
+%%  table_to_diagram(+Table, -Diagram) is det.
 %
-%	Evaluates to true when Diagram contains all the transitions
-%	described in Table.
+%   Evaluates to true when Diagram contains all the transitions
+%   described in Table.
 
 table_to_diagram(table(Input, Table), Diagram) :-
     findall(Trn, (member(Row, Table),
