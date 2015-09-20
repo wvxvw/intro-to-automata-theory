@@ -51,6 +51,9 @@ This module also defines data types:
 :- use_module('automata/parser').
 :- use_module(library(record)).
 :- use_module(library(error)).
+:- use_module(library(pairs)).
+:- use_module(library(clpfd)).
+:- use_module(library(assoc)).
 
 error:has_type(state, X) :- default_state(X).
 error:has_type(trn, X) :- default_trn(X).
@@ -261,6 +264,41 @@ nfa_to_dfa_helper(table(Inputs, Table), Cache,
     make_row([state(S), trns(Row)], R),
     nfa_to_dfa_helper(table(Inputs, Table), NewCache, NewTodo, Dfa-[R | Afd]).
 
+enum(States, Assoc) :-
+    length(States, Len),
+    L is Len - 1,
+    findall(N, between(0, L, N), NList),
+    pairs_keys_values(Paired, States, NList),
+    ord_list_to_assoc(Paired, Assoc).
+
+replace_trns([], _, []).
+replace_trns([[] | Trns], Numerated, [[] | NewTrns]) :-
+    replace_trns(Trns, Numerated, NewTrns).
+replace_trns([T | Trns], Numerated, [[Nt] | NewTrns]) :-
+    get_assoc(T, Numerated, Nt),
+    replace_trns(Trns, Numerated, NewTrns).
+
+normalized_table(table(I, Denorm), table(I, Norm)) :-
+    findall(Row, (member(Row, Denorm),
+                  row_state(Row, St),
+                  state_label(St, L),
+                  L \== []),
+            Rows),
+    findall(L, (member(R, Rows),
+                row_state(R, St),
+                state_label(St, L)), States),
+    enum(States, Numerated),
+    findall(Row, (member(R, Rows),
+                  row_state(R, St),
+                  row_trns(R, Trns),
+                  state_label(St, L),
+                  state_acc(St, Acc),
+                  get_assoc(L, Numerated, NewL),
+                  replace_trns(Trns, Numerated, NewTrns),
+                  make_state([label(NewL), acc(Acc)], NewSt),
+                  make_row([state(NewSt), trns(NewTrns)], Row)),
+            Norm).
+
 %%	nfa_to_dfa(+Nfa, -Dfa) is det.
 %
 %	Evaluates to true when Dfa accepts the same language as Nfa.
@@ -268,5 +306,6 @@ nfa_to_dfa_helper(table(Inputs, Table), Cache,
 nfa_to_dfa(Nfa, table(In, DfaTable)) :-
     nfa_table(Nfa, table(Inputs, Table)),
     nfa_to_dfa_helper(table(Inputs, Table), [], [state([0], false)], UnsortedDfa-[]),
-    sort([1, 1], @<, UnsortedDfa, DfaTable),
+    sort([1, 1], @<, UnsortedDfa, SortedDfa),
+    normalized_table(table(Inputs, SortedDfa), table(Inputs, DfaTable)),
     exclude('='([]), Inputs, In).
