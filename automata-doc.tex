@@ -1,0 +1,265 @@
+% This LaTeX document was generated using the LaTeX backend of PlDoc,
+% The SWI-Prolog documentation system
+
+
+
+\subsection{automata.pl: High-level predicates for dealing with regular expressions}
+
+\label{sec:automata}
+
+\begin{tags}
+    \tag{See also}
+\url{https://github.com/wvxvw/intro-to-automata-theory}
+    \tag{To be done}
+Add \predref{match_suffix_regex}{3}, \predref{match_all_regex}{3}, \predref{find_regex}{3}
+\end{tags}
+
+This module defines predicates for searching and replacing in strings
+using regular expressions.\vspace{0.7cm}
+
+\begin{description}
+    \predicate[det]{match_regex}{2}{+Regex, +String}
+Evaluates to true if \arg{String} is accepted by \arg{Regex}.
+
+\begin{tags}
+    \tag{See also}
+\predref{match_suffix_regex}{3}, \predref{match_all_regex}{3}, \predref{find_regex}{3}
+\end{tags}
+
+    \predicate[det]{match_suffix_regex}{3}{+Regex, +String, -Suffix}
+Evaluates to true if \arg{Suffix} is the remaining part of the \arg{String}
+not matched by \arg{Regex}.
+
+\begin{tags}
+    \tag{See also}
+\predref{match_regex}{2}, \predref{match_all_regex}{3}, \predref{find_regex}{3}
+\end{tags}
+\end{description}
+
+\subsection{automata(ast): Grammar constituents used when parsing regular expressions}
+
+\label{sec:ast}
+
+\begin{tags}
+    \tag{See also}
+\url{https://github.com/wvxvw/intro-to-automata-theory}
+\end{tags}
+
+This module defines predicates for generating abstract syntax trees
+representing regular expressions.\vspace{0.7cm}
+
+\begin{description}
+    \predicate[nondet]{rterminal}{1}{?Regex}
+Evaluates to true if \arg{Regex} is either an atom or an empty list.
+Empty list denotes empty string, atoms stand for characters of
+the strings.
+
+\begin{tags}
+    \tag{See also}
+\predref{runion}{2}, \predref{rstar}{1}, \predref{rconcat}{2}, \predref{regex}{1}
+\end{tags}
+
+    \predicate[det]{runion}{2}{+Regex1, +Regex2}
+Evaluates to true if \arg{Regex1} and \arg{Regex2} are valid regular expressions
+as defined in \predref{regex}{1}.
+
+\begin{tags}
+    \tag{See also}
+\predref{runion}{2}, \predref{rstar}{1}, \predref{rconcat}{2}, \predref{regex}{1}
+\end{tags}
+
+    \predicate[det]{rstar}{1}{+Regex}
+Evaluates to true if \arg{Regex} is a valid regular expressions
+as defined in \predref{regex}{1}.
+
+\begin{tags}
+    \tag{See also}
+\predref{rterminal}{1}, \predref{rstar}{1}, \predref{rconcat}{2}, \predref{regex}{1}
+\end{tags}
+
+    \predicate[det]{rconcat}{2}{+Regex1, +Regex2}
+Evaluates to true if \arg{Regex1} and \arg{Regex2} are valid regular expressions
+as defined in \predref{regex}{1}.
+
+\begin{tags}
+    \tag{See also}
+\predref{runion}{2}, \predref{rterminal}{1}, \predref{rconcat}{2}, \predref{regex}{1}
+\end{tags}
+
+    \predicate[det]{regex}{1}{+Regex}
+Evaluates to true if \arg{Regex} is either a \predref{runion}{2}, or a \predref{rstar}{1}, or
+a \predref{rconcat}{2} or a \predref{rterminal}{1}.
+
+\begin{tags}
+    \tag{See also}
+\predref{runion}{2}, \predref{rstar}{1}, \predref{rconcat}{2}, \predref{rterminal}{1}
+\end{tags}
+\end{description}
+
+\subsection{automata(convert): Convert between different automata represenations}
+
+\label{sec:convert}
+
+\begin{tags}
+    \tag{See also}
+\url{https://github.com/wvxvw/intro-to-automata-theory}
+\end{tags}
+
+This module defines defines conversions between regular expression
+AST, DFA represented as a list of transitions or as a table, and NFA
+represented similarly to DFA.
+
+This module also defines data types:
+
+\begin{itemize}
+    \item Transition record
+
+\begin{code}
+trn(from:integer, to:integer, input:input, acc:boolean)
+\end{code}
+
+To describe a single transition between states on some input.
+\const{acc} is \const{true} whenever the target state is an accepting one.
+    \item State record
+
+\begin{code}
+state(label, acc:boolean)
+\end{code}
+
+To describe states.
+    \item Transition table row record
+
+\begin{code}
+row(state:state, trns:trns)
+\end{code}
+
+To describe all inputs for a given state.
+    \item Transition table record
+
+\begin{code}
+table(inputs:list(input), tab:list(row))
+\end{code}
+
+To describe a complete table of transitions between all states
+of some automata.
+\end{itemize}
+
+\vspace{0.7cm}
+
+\begin{description}
+    \predicate[det]{has}{3}{+Accessor, ?Value, ?Record}
+Flips arguments for Accessr (the predicate generated to access
+fields of the record).
+
+    \predicate[det]{regex_to_nfa}{2}{+Regex, -Nfa}
+Evaluates to true when given regular expression \arg{Regex} can be
+decomposed into a list of transitions \arg{Nfa}.
+
+\begin{tags}
+    \tag{See also}
+\predref{gexps}{3}
+\end{tags}
+
+    \predicate[det]{nfa_inputs}{2}{+Nfa, -Inputs}
+Evaluates to true when \arg{Inputs} is the alphabet of the \arg{Nfa} automata.
+
+    \predicate[det]{nfa_states}{2}{+Nfa, -States}
+Evaluates to true when \arg{States} is the states of the \arg{Nfa} automata.
+
+    \predicate[det]{reacheable_states}{4}{+Input, +Transitions, +Table, -States}
+Evaluates to true when \arg{States} can be reached from all \arg{Transitions}
+on given \arg{Input}. This also accounts for epsilon transitions.
+
+    \predicate[det]{nfa_table}{2}{+Transitions, -Table:table}
+Evaluates to true when \arg{Table} is the transitions table containing
+all transitions given by \arg{Transitions}.
+
+    \predicate[det]{nfa_to_dfa}{2}{+Nfa, -Dfa}
+Evaluates to true when \arg{Dfa} accepts the same language as \arg{Nfa}.
+
+    \predicate[det]{table_to_diagram}{2}{+Table, -Diagram}
+Evaluates to true when \arg{Diagram} contains all the transitions
+described in \arg{Table}.
+\end{description}
+
+\subsection{automata(parser): DCG rules for parsing regular expressions}
+
+\label{sec:parser}
+
+\begin{tags}
+    \tag{See also}
+\url{https://github.com/wvxvw/intro-to-automata-theory}
+\end{tags}
+
+This module defines DCG rules for parsing regular expressions from
+string.\vspace{0.7cm}
+
+\begin{description}
+    \predicate[det]{gstar}{3}{+Exp, +Prefix, -Suffix}
+Parses a regular expression followed by an asterisk (the Kleene
+operator). Instantiates its first term to the rstar AST nonterminal.
+
+\begin{tags}
+    \tag{See also}
+\predref{rstar}{1}
+\end{tags}
+
+    \predicate[det]{gunion}{3}{+Exp, +Prefix, -Suffix}
+Parses a union of two regular expressions joined by the \verb$+$ sign.
+Instantiates its first term to the runion AST nonterminal.
+
+\begin{tags}
+    \tag{See also}
+\predref{runion}{2}
+\end{tags}
+
+    \predicate[det]{gchar}{3}{+Exp, +Prefix, -Suffix}
+Parses a single terminal character and instantiates it to
+AST rterminal term.
+
+\begin{tags}
+    \tag{See also}
+\predref{rterminal}{1}
+\end{tags}
+
+    \predicate[det]{gexps}{3}{+Tree, +Prefix, -Suffix}
+Parses regular expression from the string \arg{Prefix} and instantiates
+the \arg{Tree} to the parse \predref{regex}{1} term.
+
+\begin{tags}
+    \tag{See also}
+\predref{regex}{1}
+\end{tags}
+\end{description}
+
+\subsection{automata(printing): Predicates for pretty printing}
+
+\label{sec:printing}
+
+\begin{tags}
+    \tag{See also}
+\url{https://github.com/wvxvw/intro-to-automata-theory}
+\end{tags}
+
+This module defines predicates useful to print structures generated by
+other automata modules.\vspace{0.7cm}
+
+\begin{description}
+    \predicate[det]{regex_to_string}{2}{+Exp, -Result}
+Evaluates to true when given regular expression \arg{Exp} can be written
+as \arg{Result} string.
+
+\begin{tags}
+    \tag{See also}
+\predref{regex}{1}
+\end{tags}
+
+    \predicate[det]{format_table}{1}{+Table:table}
+Pretty-prints the contents of the transitions table.
+
+\begin{tags}
+    \tag{See also}
+\predref{nfa_to_dfa}{2}, \predref{nfa_table}{2}
+\end{tags}
+\end{description}
+

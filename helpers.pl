@@ -2,6 +2,7 @@
 :- portray_text(true).  % Enable portray of strings
 
 :- use_module(library(lists)).
+:- use_module(library(doc_latex)).
 :- use_module(automata).
 :- use_module(automata(convert)).
 :- use_module(automata(printing)).
@@ -39,3 +40,13 @@ test_reacheable_epsilon(States) :-
     regex_to_nfa(`x(y+x)*+z`, X),
     nfa_table(X, Y),
     'automata/convert':reacheable_epsilon(3, x, Y, States).
+
+gen_doc :-
+    doc_latex(['automata',
+               'automata/ast',
+               'automata/convert',
+               'automata/parser',
+               'automata/printing'],
+              'automata-doc.tex',
+              [stand_alone(flase),
+               section_level(subsection)])

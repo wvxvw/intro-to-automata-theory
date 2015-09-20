@@ -11,7 +11,7 @@ This module defines predicates for searching and replacing in strings
 using regular expressions.
 
 @see	https://github.com/wvxvw/intro-to-automata-theory
-@tbd	Add match_suffix_regex/3, match_all_regex/3, find_regex/3
+@tbd	Add match_all_regex/3, find_regex/3
 */
 
 :- meta_predicate

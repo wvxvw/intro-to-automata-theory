@@ -18,6 +18,7 @@
 #+LATEX_HEADER: \usepackage{algpseudocode}
 #+LATEX_HEADER: \usepackage{algorithm}
 #+LATEX_HEADER: \usepackage{mathtools}
+#+LATEX_HEADER: \usepackage{pldoc}
 #+LATEX_HEADER: \usetikzlibrary{arrows,automata}
 #+LATEX_HEADER: \setlength{\parskip}{16pt plus 2pt minus 2pt}
 #+LATEX_HEADER: \renewcommand{\arraystretch}{1.6}
@@ -337,3 +338,7 @@
    designates regular expression $r\Sigma^*$.  Prove that unless $L = \Sigma^*$
    and $L = \emptyset$, there doesn't exist a regular expression $s$ s.t.
    $s\Sigma^*$ designates $\overline{L}$.
+* Appendix A
+  #+BEGIN_LaTeX
+  \input{automata-doc.tex}
+  #+END_LaTeX

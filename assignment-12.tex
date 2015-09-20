@@ -1,4 +1,4 @@
-% Created 2015-09-08 Tue 19:21
+% Created 2015-09-21 Mon 00:36
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -28,6 +28,7 @@
 \usepackage{algpseudocode}
 \usepackage{algorithm}
 \usepackage{mathtools}
+\usepackage{pldoc}
 \usetikzlibrary{arrows,automata}
 \setlength{\parskip}{16pt plus 2pt minus 2pt}
 \renewcommand{\arraystretch}{1.6}
@@ -344,4 +345,7 @@ Given regular expression \(r\) and \(L\), a language over \(\Sigma\) which
 designates regular expression \(r\Sigma^*\).  Prove that unless \(L = \Sigma^*\)
 and \(L = \emptyset\), there doesn't exist a regular expression \(s\) s.t.
 \(s\Sigma^*\) designates \(\overline{L}\).
+\section{Appendix A}
+\label{sec:orgheadline18}
+\input{automata-doc.tex}
 \end{document}
