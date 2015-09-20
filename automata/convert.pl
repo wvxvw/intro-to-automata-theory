@@ -2,7 +2,6 @@
           [regex_to_nfa/2,
            nfa_inputs/2,
            nfa_states/2,
-           nfa_state/3,
            nfa_table/2,
            nfa_to_dfa/2,
            reacheable_states/4
@@ -12,10 +11,42 @@
        regex_to_nfa(+, -),
        nfa_inputs(+, -),
        nfa_states(+, -),
-       nfa_state(+, +, -),
        nfa_table(+, -),
        nfa_to_dfa(+, -),
        reacheable_states(+, +, +, -).
+
+/** <module> Convert between different automata represenations
+
+This module defines defines conversions between regular expression
+AST, DFA represented as a list of transitions or as a table, and NFA
+represented similarly to DFA.
+
+This module also defines data types:
+    * Transition record
+      ==
+      trn(from:integer, to:integer, input:input, acc:boolean)
+      ==
+      To describe a single transition between states on some input.
+      =acc= is =true= whenever the target state is an accepting one.
+    * State record
+      ==
+      state(label, acc:boolean)
+      ==
+      To describe states.
+    * Transition table row record
+      ==
+      row(state:state, trns:trns)
+      ==
+      To describe all inputs for a given state.
+    * Transition table record
+      ==
+      table(inputs:list(input), tab:list(row))
+      ==
+      To describe a complete table of transitions between all states
+      of some automata.
+
+@see	https://github.com/wvxvw/intro-to-automata-theory
+*/
 
 :- use_module('automata/parser').
 :- use_module(library(record)).
@@ -34,10 +65,6 @@ error:has_type(row, X) :- default_row(X).
 :- record table(inputs:list(input), tab:list(row)).
 
 has(Accessor, Value, Record) :- call(Accessor, Record, Value).
-
-%%
-%% regular expression to NFA conversion
-%% 
 
 vre_to_nfa_helper(rterminal(X), From, To, [trn(From, To, X, Final)], P, P) :-
     ( To = 1 -> Final = true ; Final = false ).
@@ -62,6 +89,13 @@ vre_to_nfa_helper(rstar(X), From, To, Diagram, Prev, Next) :-
 vregex_to_nfa(Regex, Diagram) :-
     vre_to_nfa_helper(Regex, 0, 1, Diagram, 2, _).
 
+%%	regex_to_nfa(+Regex, -Nfa) is det.
+%
+%	Evaluates to true when given regular expression Regex can be
+%	decomposed into a list of transitions Nfa.
+%
+%	@see	gexps/3
+
 regex_to_nfa(Regex, Diagram) :-
     phrase(gexps(Parsed), Regex),
     %% format('Parsed = ~w~n', [Parsed]),
@@ -74,6 +108,11 @@ nfa_inputs_helper([trn(_, _, X, _) | Diagram], Acc, Inputs) :-
             nfa_inputs_helper(Diagram, Acc, Inputs) ;
         nfa_inputs_helper(Diagram, [X | Acc], Inputs)
     ).
+
+%%	nfa_inputs(+Nfa, -Inputs) is det.
+%
+%	Evaluates to true when Inputs is the alphabet of the Nfa automata.
+
 nfa_inputs(Diagram, Inputs) :-
     nfa_inputs_helper(Diagram, [], Inputs).
 
@@ -107,6 +146,11 @@ nfa_states_helper([trn(From, To, _, _) | Diagram], Transitions, Acc, States) :-
               States)
      )
     ).
+
+%%	nfa_states(+Nfa, -States) is det.
+%
+%	Evaluates to true when States is the states of the Nfa automata.
+
 nfa_states(Diagram, States) :-
     nfa_states_helper(Diagram, Diagram, [], States).
 
@@ -133,6 +177,11 @@ reacheable_states_rec(Previous, Table, Cached, All) :-
     flatten(ResultTree, Result),
     reacheable_states_helper(Result, Cached, Table, All).
 
+%%	reacheable_states(+Input, +Transitions, +Table, -States) is det.
+%
+%	Evaluates to true when States can be reached from all Transitions
+%	on given Input.  This also accounts for epsilon transitions.
+
 reacheable_states([], [Tr | Trans], Table, Result) :-
     include(has(trn_input, []), [Tr | Trans], Dest),
     trn_from(Tr, Self),
@@ -152,16 +201,18 @@ nfa_table_helper([], _, _, X, X).
 nfa_table_helper([[N, State] | States], All, Inputs, Acc, Table) :-
     findall(X, (member(Y, Inputs), ensure_state(N, Y, State, All, X)), Row),
     nfa_table_helper(States, All, Inputs, [row(N, Row) | Acc], Table).
+
+%%	nfa_table(+Transitions, -Table:table) is det.
+%
+%	Evaluates to true when Table is the transitions table containing
+%	all transitions given by Transitions.
+
 nfa_table(Diagram, table(Inputs, Table)) :-
     nfa_inputs(Diagram, Inputs),
     nfa_states(Diagram, States),
     findall([X, Y], (member(X, States), nfa_state(Diagram, X, Y)), StatesL),
     nfa_table_helper(StatesL, StatesL, Inputs, [], UnsortedTable),
     sort(1, @<, UnsortedTable, Table).
-
-%%
-%% NFA -> DFA
-%% 
 
 states_for_input(Input, Inputs, Row, States) :-
     nth0(Index, Inputs, Input),
@@ -209,6 +260,10 @@ nfa_to_dfa_helper(table(Inputs, Table), Cache,
     make_state([label(T), acc(A)], S),
     make_row([state(S), trns(Row)], R),
     nfa_to_dfa_helper(table(Inputs, Table), NewCache, NewTodo, Dfa-[R | Afd]).
+
+%%	nfa_to_dfa(+Nfa, -Dfa) is det.
+%
+%	Evaluates to true when Dfa accepts the same language as Nfa.
 
 nfa_to_dfa(Nfa, table(In, DfaTable)) :-
     nfa_table(Nfa, table(Inputs, Table)),
