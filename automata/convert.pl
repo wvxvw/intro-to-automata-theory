@@ -157,6 +157,11 @@ nfa_states_helper([trn(From, To, _, _) | Diagram], Transitions, Acc, States) :-
 nfa_states(Diagram, States) :-
     nfa_states_helper(Diagram, Diagram, [], States).
 
+nfa_state(table(_, Table), N, State) :-
+    findall(S, (member(Row, Table),
+                row_state(Row, S),
+                state_label(S, N)),
+            [State | _]).
 nfa_state(Diagram, state(N, _), State) :-
     include(has(trn_from, N), Diagram, State).
 
@@ -309,3 +314,21 @@ nfa_to_dfa(Nfa, table(In, DfaTable)) :-
     sort([1, 1], @<, UnsortedDfa, SortedDfa),
     normalized_table(table(Inputs, SortedDfa), table(Inputs, DfaTable)),
     exclude('='([]), Inputs, In).
+
+%%	table_to_diagram(+Table, -Diagram) is det.
+%
+%	Evaluates to true when Diagram contains all the transitions
+%	described in Table.
+
+table_to_diagram(table(Input, Table), Diagram) :-
+    findall(Trn, (member(Row, Table),
+                  row_state(Row, St),
+                  row_trns(Row, Trns),
+                  state_label(St, Label),
+                  pairs_keys_values(Paired, Trns, Input),
+                  member(Ts-I, Paired),
+                  member(T, Ts),
+                  nfa_state(table(Input, Table), T, To),
+                  state_acc(To, A),
+                  make_trn([from(Label), to(T), input(I), acc(A)], Trn)),
+            Diagram).
