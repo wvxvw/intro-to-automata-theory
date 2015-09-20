@@ -1,25 +1,39 @@
 :- module('automata/convert',
-          [vregex_to_nfa/2,
-           regex_to_nfa/2,
+          [regex_to_nfa/2,
            nfa_inputs/2,
            nfa_states/2,
            nfa_state/3,
-           reacheable_states/4,
            nfa_table/2,
-           nfa_to_dfa/2
+           nfa_to_dfa/2,
+           reacheable_states/4
            ]).
 
 :- meta_predicate
-       vregex_to_nfa(+, -),
        regex_to_nfa(+, -),
        nfa_inputs(+, -),
        nfa_states(+, -),
        nfa_state(+, +, -),
-       reacheable_states(+, +, +, -),
        nfa_table(+, -),
-       nfa_to_dfa(+, -).
+       nfa_to_dfa(+, -),
+       reacheable_states(+, +, +, -).
 
 :- use_module('automata/parser').
+:- use_module(library(record)).
+:- use_module(library(error)).
+
+error:has_type(state, X) :- default_state(X).
+error:has_type(trn, X) :- default_trn(X).
+error:has_type(input, X) :- X = [] ; atom(X).
+error:has_type(trns, X) :-
+    foreach(member(E, X), error:must_be(list(integer), E)).
+error:has_type(row, X) :- default_row(X).
+
+:- record trn(from:integer, to:integer, input:input, acc:boolean).
+:- record state(label, acc:boolean).
+:- record row(state:state, trns:trns).
+:- record table(inputs:list(input), tab:list(row)).
+
+has(Accessor, Value, Record) :- call(Accessor, Record, Value).
 
 %%
 %% regular expression to NFA conversion
@@ -63,13 +77,8 @@ nfa_inputs_helper([trn(_, _, X, _) | Diagram], Acc, Inputs) :-
 nfa_inputs(Diagram, Inputs) :-
     nfa_inputs_helper(Diagram, [], Inputs).
 
-transition_from(From, trn(From, _, _, _)).
-transition_to(To, trn(_, To, _, _)).
-transition_input(Input, trn(_, _, Input, _)).
-transition_accept(Accept, trn(_, _, _, Accept)).
-
 accepting(N, Diagram, true) :-
-    include(transition_to(N), Diagram, [trn(_, _, _, true) | _]), !.
+    include(has(trn_to, N), Diagram, [trn(_, _, _, true) | _]), !.
 accepting(_, _, false).
 
 nfa_states_helper([], _, X, X).
@@ -102,7 +111,7 @@ nfa_states(Diagram, States) :-
     nfa_states_helper(Diagram, Diagram, [], States).
 
 nfa_state(Diagram, state(N, _), State) :-
-    include(transition_from(N), Diagram, State).
+    include(has(trn_from, N), Diagram, State).
 
 nfa_nth_state(N, [state(N, _), _]).
 
@@ -117,25 +126,23 @@ reacheable_states_rec(Previous, Table, Cached, All) :-
             (member(T, Previous),
              member([state(T, _), Ts], Table),
              nfa_nth_state(T, [_, Ts]),
-             include(transition_input([]), Ts, AllTrans),
-             findall(X,
-                     (member(M, AllTrans), transition_to(X, M)),
-                     AllStates),
+             include(has(trn_input, []), Ts, AllTrans),
+             findall(X, (member(M, AllTrans), trn_to(M, X)), AllStates),
              ord_subtract(AllStates, Cached, Trans)),
             ResultTree),
     flatten(ResultTree, Result),
     reacheable_states_helper(Result, Cached, Table, All).
 
 reacheable_states([], [Tr | Trans], Table, Result) :-
-    include(transition_input([]), [Tr | Trans], Dest),
-    transition_from(Self, Tr),
-    findall(X, (member(T, Dest), transition_to(X, T)), Dests),
+    include(has(trn_input, []), [Tr | Trans], Dest),
+    trn_from(Tr, Self),
+    findall(X, (member(T, Dest), trn_to(T, X)), Dests),
     union(Dests, [Self], Cache),
     reacheable_states_rec(Dests, Table, Cache, Result).
 reacheable_states(Input, Trans, _, Result) :-
     Input \== [],
-    include(transition_input(Input), Trans, Dest),
-    findall(X, (member(T, Dest), transition_to(X, T)), Result).
+    include(has(trn_input, Input), Trans, Dest),
+    findall(X, (member(T, Dest), trn_to(T, X)), Result).
 
 ensure_state(state(N, _), [], [], _, [N]).
 ensure_state(_, Input, State, All, Cell) :-
@@ -199,12 +206,12 @@ nfa_to_dfa_helper(table(Inputs, Table), Cache,
     ord_subtract(FlatDest, Cache, CleanDest),
     append(CleanDest, Cache, NewCache),
     append(CleanDest, Todo, NewTodo),
-    nfa_to_dfa_helper(table(Inputs, Table),
-                      NewCache, NewTodo, Dfa-[row(state(T, A), Row) | Afd]).
+    make_state([label(T), acc(A)], S),
+    make_row([state(S), trns(Row)], R),
+    nfa_to_dfa_helper(table(Inputs, Table), NewCache, NewTodo, Dfa-[R | Afd]).
 
 nfa_to_dfa(Nfa, table(In, DfaTable)) :-
     nfa_table(Nfa, table(Inputs, Table)),
     nfa_to_dfa_helper(table(Inputs, Table), [], [state([0], false)], UnsortedDfa-[]),
     sort([1, 1], @<, UnsortedDfa, DfaTable),
     exclude('='([]), Inputs, In).
-    
