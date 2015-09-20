@@ -89,7 +89,7 @@
       start with $bab$ and end in $b$.
    2. Build an NFA for the language over alphabet $\{a,b,c\}$, defined as
       follows: $L = \{w \;|\; \exists n,m,k \in \mathbb{N}.(w = a^nb^mc^k \land
-      \#(w) \mod 2 = 0)\}$.
+      \abs{w} \mod 2 = 0)\}$.
    3. Build an NFA for the language over alphabet $\{a,b\}$, s.t. it contains
       all words with substring $aba$ repeated at least twice.
 

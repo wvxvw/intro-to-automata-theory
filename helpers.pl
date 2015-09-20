@@ -41,6 +41,9 @@ test_reacheable_epsilon(States) :-
     nfa_table(X, Y),
     'automata/convert':reacheable_epsilon(3, x, Y, States).
 
+test_match_all(Matches) :-
+    findall(X, match_all_regex(`x(y+x)*+z`, `xyyxxxyxxyz`, X), Matches).
+
 gen_doc :-
     doc_latex(['automata',
                'automata/ast',
@@ -49,4 +52,4 @@ gen_doc :-
                'automata/printing'],
               'automata-doc.tex',
               [stand_alone(flase),
-               section_level(subsection)])
+               section_level(subsection)]).
