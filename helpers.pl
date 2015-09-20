@@ -29,6 +29,9 @@ test_nfa_to_dfa(Dfa) :-
 test_match :-
     match_regex(`x(y+x)*+z`, `xyyxxxyxxy`).
 
+test_mismatch :-
+    match_regex(`x(y+x)*+z`, `xyyxxxyxxyz`).
+
 test_reacheable_epsilon(States) :-
     regex_to_nfa(`x(y+x)*+z`, X),
     nfa_table(X, Y),

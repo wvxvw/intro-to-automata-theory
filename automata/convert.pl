@@ -1,19 +1,33 @@
 :- module('automata/convert',
           [regex_to_nfa/2,
+           table_to_diagram/2,
            nfa_inputs/2,
            nfa_states/2,
            nfa_table/2,
            nfa_to_dfa/2,
-           reacheable_states/4
+           reacheable_states/4,
+           has/3,
+           trn_from/2,
+           trn_to/2,
+           trn_input/2,
+           trn_acc/2
            ]).
 
 :- meta_predicate
        regex_to_nfa(+, -),
+       table_to_diagram(+, -),
        nfa_inputs(+, -),
        nfa_states(+, -),
        nfa_table(+, -),
        nfa_to_dfa(+, -),
-       reacheable_states(+, +, +, -).
+       reacheable_states(+, +, +, -),
+       has(+, ?, ?),
+       trn_from(+, -),
+       trn_to(+, -),
+       trn_input(+, -),
+       trn_acc(+, -).
+
+:- dynamic trn_from/2, trn_to/2, trn_input/2, trn_acc/2.
 
 /** <module> Convert between different automata represenations
 
@@ -66,6 +80,11 @@ error:has_type(row, X) :- default_row(X).
 :- record state(label, acc:boolean).
 :- record row(state:state, trns:trns).
 :- record table(inputs:list(input), tab:list(row)).
+
+%%	has(+Accessor, ?Value, ?Record) is det.
+%
+%	Flips arguments for Accessr (the predicate generated to access
+%	fields of the record).
 
 has(Accessor, Value, Record) :- call(Accessor, Record, Value).
 

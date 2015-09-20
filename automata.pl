@@ -19,56 +19,18 @@ using regular expressions.
 :- use_module(automata(convert)).
 :- use_module(library(pldoc)).
 
-%%
-%% regex matching
-%%
+step(From, Input, Transitions, Trn) :-
+    findall(T, (member(T, Transitions),
+                trn_input(T, Input),
+                trn_from(T, From)),
+            [Trn | _]).
 
-next_states_rec(From, Input, Diagram, Transitions, Cache) :-
-    next_states(From, Input, Diagram, NTransitions),
-    include('='(trn(_, _, [], _)), NTransitions, ETransitions),
-    ord_subtract(ETransitions, Cache, Rest),
-    findall(X, next_states(From, [], Diagram, Rest), NextGen),
-    ord_subtract(NextGen, Cache, New),
-    ( New = [] -> 
-          append([Cache, Rest, NextGen], Transitions)
-     ;
-     append([Cache, Rest, NextGen], NCache),
-     findall(Y, (member(trn(FromN, _, _, _), NextGen),
-                 next_states_rec(FromN, Input, Diagram, Y, NCache)),
-             TransitionsRaw),
-     append(TransitionsRaw, Transitions) ).
-
-next_states(Form, Input, Diagram, Transitions) :-
-    include('='(trn(From, _, Input, _)), Diagram, Transitions).
-
-next_states(From, Diagram, Transitions) :-
-    include('='(trn(From, _, _, _)), Diagram, Transitions).
-
-start_states(Diagram, Transitions) :- next_states(1, Diagram, Transitions).
-
-matcher([trn(From, To, S, Accepting) | Transitions], S, Diagram, Result) :-
-    Result = trn(From, To, S, Accepting) ;
-    matcher(Transitions, S, Diagram, Result).
-matcher([trn(_, To, [], _) | Transitions], S, Diagram, Result) :-
-    %% There's a problematic part: if we ahve two states with epsilon-transitions
-    %% to each other, we will loop forever...
-    format('Following epsilon-transition: ~w~n', [To]),
-    next_states(To, Diagram, NTransitions),
-    matcher(NTransitions, S, Diagram, Result)
-    ;
-    matcher(Transitions, S, Diagram, Result).
-matcher([trn(_, _, Input, _) | Transitions], S, Diagram, Result) :-
-    Input \== S, matcher(Transitions, S, Diagram, Result).
-
-match_regex_helper([], _, _, trn(_, _, _, true)).
-match_regex_helper(_, [], _, _) :- fail.
-match_regex_helper([S | Suffix], States, Diagram, Matched) :-
-    member(State, States),
-    format('Matching: ~w, State: ~w~n', [S, State]),
-    matcher(State, S, Diagram, Matched),
-    format('State: ~w, Matched: ~w~n', [State, Matched]),
-    next_states(Matched, Diagram, Next),
-    match_regex_helper(Suffix, Next, Diagram, Matched).
+match_regex_helper([], _, Trn) :- !, trn_acc(Trn, true).
+match_regex_helper([S | Ss], Diagram, Trn) :-
+    char_code(C, S),
+    trn_to(Trn, To),
+    step(To, C, Diagram, Next),
+    match_regex_helper(Ss, Diagram, Next).
 
 %%	match_regex(+Regex, +String) is det.
 %
@@ -76,8 +38,16 @@ match_regex_helper([S | Suffix], States, Diagram, Matched) :-
 %
 %	@see	match_suffix_regex/3, match_all_regex/3, find_regex/3
 
-match_regex(Regex, String) :-
-    regex_to_nfa(Regex, Diagram),
-    start_states(Diagram, [First | States]),
-    format('States: ~w~n', [[First | States]]),
-    match_regex_helper(String, [First | States], Diagram, First).
+match_regex(Regex, [S | String]) :-
+    regex_to_nfa(Regex, Nfa),
+    nfa_to_dfa(Nfa, Dfa),
+    table_to_diagram(Dfa, UnsortedDiagram),
+    sort(1, @=<, UnsortedDiagram, Diagram),
+    Diagram = [First | _],
+    trn_from(First, F),
+    char_code(C, S),
+    findall(T, (member(T, Diagram),
+                trn_from(T, F),
+                trn_input(T, C)),
+            [Trn | _]),
+    match_regex_helper(String, Diagram, Trn).
