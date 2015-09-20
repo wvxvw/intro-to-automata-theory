@@ -32,6 +32,9 @@ test_match :-
 test_mismatch :-
     match_regex(`x(y+x)*+z`, `xyyxxxyxxyz`).
 
+test_smatch_suffix(Suffix) :-
+    match_suffix_regex(`x(y+x)*+z`, `xyyxxxyxxyzab`, Suffix).
+
 test_reacheable_epsilon(States) :-
     regex_to_nfa(`x(y+x)*+z`, X),
     nfa_table(X, Y),
