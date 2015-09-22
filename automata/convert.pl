@@ -1,5 +1,6 @@
 :- module('automata/convert',
           [regex_to_nfa/2,
+           dfa_to_regex/2,
            table_to_diagram/2,
            nfa_inputs/2,
            nfa_states/2,
@@ -15,6 +16,7 @@
 
 :- meta_predicate
        regex_to_nfa(+, -),
+       dfa_to_regex(+, -),
        table_to_diagram(+, -),
        nfa_inputs(+, -),
        nfa_states(+, -),
@@ -63,6 +65,7 @@ This module also defines data types:
 */
 
 :- use_module('automata/parser').
+:- use_module('automata/ast').
 :- use_module(library(record)).
 :- use_module(library(error)).
 :- use_module(library(pairs)).
@@ -351,3 +354,92 @@ table_to_diagram(table(Input, Table), Diagram) :-
                   state_acc(To, A),
                   make_trn([from(Label), to(T), input(I), acc(A)], Trn)),
             Diagram).
+
+maybe_union(Re, [], [Re]).
+maybe_union(Re, [Re | Rest], [Re | Rest]).
+maybe_union(Re1-[N], [Re2-[N] | Rest], [runion(Re1, Re2)-[N] | Rest]).
+maybe_union(Re1, [Re2 | Rest], [runion(Re1, Re2) | Rest]) :-
+    regex(Re1), regex(Re2).
+maybe_union(Re1, [Re2 | Rest], [Re1, Re2 | Rest]).
+
+normalize_rule(Rule, Normalized) :-
+    sort(0, @<, Rule, Sorted),
+    foldl(maybe_union, Sorted, [], Normalized).
+
+find_rule(N, Rules, Rule) :-
+    member(state(N, _)-Tail, Rules),
+    member(Rule, Tail).
+
+reduce_rule(State-Rule, RulesIn, RulesOut) :-
+    state_label(State, N),
+    findall(Rex, (member(Rl, Rule),
+                  (
+                      Rl = R-[M] ->
+                          (
+                              N = M -> Rex = rstar(R)
+                           ;
+                           find_rule(M, RulesIn, Expansion),
+                           (
+                               regex(Expansion) ->
+                                   (
+                                       Expansion = rterminal([]) -> Rex = R
+                                    ;
+                                    Rex = rconcat(R, Expansion)
+                                   )
+                            ;
+                            Head-Tail = Expansion,
+                            Rex = rconcat(R, Head)-Tail
+                           )
+                          )
+                   ;
+                   Rex = Rl
+                  )),
+            NewRule),
+    normalize_rule(NewRule, NormRule),
+    select(State-Rule, RulesIn, State-NormRule, RulesOut).
+
+dead(_-[]).
+
+reduce_rules_helper([], X, X).
+reduce_rules_helper([R | Rest], Rules, Interim) :-
+    reduce_rule(R, Rules, NewRules),
+    reduce_rules_helper(Rest, NewRules, Interim).
+
+reduce_rules(Rules, Reduced) :-
+    [_-R | _] = Rules,
+    (
+        (length(R, 1), [Rex] = R, regex(Rex)) ->
+            Reduced = Rules
+     ;
+     reduce_rules_helper(Rules, Rules, Interim),
+     reduce_rules(Interim, Reduced)
+    ).
+
+%%  dfa_to_regex(+Dfa, -Regex) is det.
+%
+%   Evaluates to true when Regex accepts the same language as the
+%   given Dfa.  Dfa could be either a transitions table or a list of
+%   all transitions.
+
+dfa_to_regex(table(Input, Table), Regex) :-
+    findall(I, (member(In, Input), I = rterminal(In)), Terminals),
+    findall(R, (member(Row, Table),
+                row_state(Row, S),
+                row_trns(Row, Trns),
+                pairs_keys_values(Paired, Terminals, Trns),
+                exclude(dead, Paired, Filtered),
+                (
+                    state_acc(S, true) -> Tail = [rterminal([]) | Filtered]
+                 ;
+                 Tail = Filtered
+                ),
+                R = S-Tail),
+            Rules),
+    reduce_rules(Rules, Reduced), !,
+    Reduced = [_-[Re | _] | _],
+    regex_to_string(Re, Regex).
+    
+dfa_to_regex(Dfa, Regex) :-
+    is_list(Dfa),
+    nfa_table(Dfa, Table),
+    dfa_to_regex(Table, Regex).

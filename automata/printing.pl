@@ -15,7 +15,9 @@ other automata modules.
 @see    https://github.com/wvxvw/intro-to-automata-theory
 */
 
-vexp(rterminal(C))  --> { char_code(C, R) }, [R].
+:- use_module('automata/ast').
+
+vexp(rterminal(C))  --> { C = [], !, R = 603 ; char_code(C, R) }, [R].
 vexp(runion(L, R))  --> "(", vexp(L), "+", vexp(R), ")".
 vexp(rstar(E))      --> "(", vexp(E), ")*".
 vexp(rconcat(L, R)) --> vexp(L), vexp(R).
@@ -28,7 +30,7 @@ vexp(rconcat(L, R)) --> vexp(L), vexp(R).
 %   @see    regex/1
 
 regex_to_string(Exp, Result) :-
-    phrase(Exp, Codes), text_to_string(Codes, Result).
+    phrase(vexp(Exp), Codes), text_to_string(Codes, Result).
 
 format_table_helper([]).
 format_table_helper([row(N, Row) | Table]) :-

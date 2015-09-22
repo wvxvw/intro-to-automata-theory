@@ -255,6 +255,55 @@
    Write an algorithm which accepts a regular expression $r$ and produces a
    language $\overline{L[r]}$.
 
+*** Answer 7
+    The basic idea is to convert given regular expression to NFA, from NFA to
+    DFA, switch roles of accepting and rejecting states, then convert the DFA
+    into a regular expression again.  I wrote concerte implementation for this
+    algorithm.  The documentation to my code is given in [[Appendix A]], the code
+    itself can be found together with this document (it is not included for
+    brevity).
+
+    + String to regexp :: This step requires writing a recursive parser (since
+         we need to balance parenthesis).  Given a string containing regular
+         expression this step produces an AST of regular expression code
+         (further AST).
+    + Regexp to NFA :: This step starts off with creating a starting state and a
+         distinct accepting state.  It recursively processes every node of AST
+         and for each one of four node types it appends nodes to NFA:
+      - terminal :: No nodes are added, only an arc between two active nodes.
+      - concatenation :: One node is added between two currently active nodes,
+           and each node is processed further with the added node as either its
+           source or its destination.
+      - union :: No nodes are added.  This is similar to the =terminal= step,
+           except both regexp are expanded further.
+      - star :: Add $\epsilon$-transition from both the source and the
+           destination nodes to the node currently processed.  Add
+           $\epsilon$-transition from the destination to the source.
+    + NFA to DFA :: At first, arrange all transitions into a matrix $M_{i,q}$
+         indexed by inputs $i$, including $\epsilon$ and states $q$.  Create a
+         new matrix $M'_{j,p}$ indexed by inputs concatenated to $\epsilon^*$
+         and new states $p$.  New states are obtained as follows: Select a cell
+         $m = M_{i,q}$, $m$ will be the set of all states reacheable on input
+         $i$ from state $q$, suppose $m = \{q_n, q_{n+1}, \dots q_{n+m}\}$.
+         Now, for each $p \in \{q_n, \dots q_{n+m}\}$ find the cell $e =
+         M_{\epsilon, p}$.  The union of these cells is the label of target DFA.
+    + Flip rejecting and accepting states :: This step is trivial: make switch
+         the roles of all states.  Note that this requires the often omitted
+         ``dead'' state.
+    + DFA to regexp :: For each state $S$ of the DFA record the union of all
+         states immediatel reacheable from the given state in a form of a
+         grammar rule $S_a \to iS_b$.  Substitute rules into each other to
+         eliminate non-terminals as follows:
+      - $S_n \to i\{\epsilon\} \implies S_n \to i$.
+      - $S_n \to iS_n \implies S_n \to i^*$.
+      - $S_n \to iS_m, S_m \to jS_k \implies S_n \to ijS_k$.
+      
+        It is useful to apply set-theoretic identities, such as distributivity
+        of union over Kleene star, eg. $x^* \cup y^* = (x \cup y)^*$ to produce
+        a better regular expression.
+    + Serialize regexp to string :: Recursively visit every node of AST and
+         substitue the node contents with its string representation.
+
 ** Problem 5
    Build a DFA from given NFA:
 
@@ -279,7 +328,7 @@
      \end{tikzpicture}
    #+END_SRC
 
-*** Answer 7
+*** Answer 8
     The corresponding DFA can be written as:
 
     #+HEADER: :exports results
@@ -330,7 +379,7 @@
 
    /Nodes where the automata dies are not shown./
 
-*** Answer 8
+*** Answer 9
     The regular expression for the diagram above: $\epsilon + b((a + b)b^*)^+$.
 
 ** Problem 7
@@ -340,5 +389,7 @@
    $s\Sigma^*$ designates $\overline{L}$.
 * Appendix A
   #+BEGIN_LaTeX
+  \bgroup
   \input{automata-doc.tex}
+  \egroup
   #+END_LaTeX

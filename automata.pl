@@ -24,9 +24,9 @@ using regular expressions.
 :- use_module(library(record)).
 :- use_module(library(error)).
 
-:- record match(str:list(integer), pos:integer).
-
 :- dynamic match_str/2, match_pos/2, make_match/2.
+
+:- record match(str:list(integer), pos:integer).
 
 step(From, Input, Transitions, Trn) :-
     format('step: ~w, ~w~n', [From, Input]),

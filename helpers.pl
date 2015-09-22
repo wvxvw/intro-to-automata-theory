@@ -22,6 +22,11 @@ test_automata(X) :-
     nfa_table(X, Y),
     format_table(Y).
 
+test_to_string :-
+    phrase('automata/parser':gexps(Parsed), `x(y+x)*+z`),
+    regex_to_string(Parsed, S),
+    format('Regex: ~w~n', [S]).
+
 test_nfa_to_dfa(Dfa) :-
     regex_to_nfa(`x(y+x)*+z`, Nfa),
     nfa_to_dfa(Nfa, Dfa),
@@ -44,6 +49,11 @@ test_reacheable_epsilon(States) :-
 test_match_all(Matches) :-
     findall(X, match_all_regex(`x(y+x)*+z`, `xyyxxxyxxyz`, X), Matches).
 
+test_dfa_to_regex(Regex) :-
+    regex_to_nfa(`x(y+x)*+z`, X),
+    nfa_to_dfa(X, Y),
+    dfa_to_regex(Y, Regex).
+
 gen_doc :-
     doc_latex(['automata',
                'automata/ast',
@@ -51,5 +61,12 @@ gen_doc :-
                'automata/parser',
                'automata/printing'],
               'automata-doc.tex',
-              [stand_alone(flase),
+              [stand_alone(false),
                section_level(subsection)]).
+
+largest_subseq_sum(Seq, Max) :-
+    findall(S, (append([_, X, _], Seq), sum_list(X, S)), Subs),
+    max_list(Subs, Max).
+
+% ?- largest_subseq_sum([3, -2, 5, -9, 7, 1], X).
+% X = 8.

@@ -65,7 +65,7 @@ rconcat(X, Y) :- regex(X), regex(Y).
 %
 %   @see    runion/2, rstar/1, rconcat/2, rterminal/1
 
-regex(X) :- rterminal(X) ;
+regex(X) :- X = rterminal(_) ;
             X = runion(Y, Z), regex(Y), regex(Z) ;
             X = rstar(Y), regex(Y) ;
             X = rconcat(Y, Z), regex(Y), regex(Z).
