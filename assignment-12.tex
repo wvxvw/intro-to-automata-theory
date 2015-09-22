@@ -1,4 +1,4 @@
-% Created 2015-09-22 Tue 17:51
+% Created 2015-09-22 Tue 22:59
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -318,7 +318,7 @@ eliminate non-terminals as follows:
 \item \(S_n \to iS_m, S_m \to jS_k \implies S_n \to ijS_k\).
 
 It is useful to apply set-theoretic identities, such as distributivity
-of union over Kleene star, eg. \(x^* \cup y^* = (x \cup y)^*\) to produce
+of union over concatenation, eg. \(xz \cup yz = (x \cup y)z\) to produce
 a better regular expression.
 \end{itemize}
 \item[{Serialize regexp to string}] Recursively visit every node of AST and
