@@ -54,6 +54,9 @@ test_dfa_to_regex(Regex) :-
     nfa_to_dfa(X, Y),
     dfa_to_regex(Y, Regex).
 
+test_invert(Regex) :-
+    invert_regex(`x(y+x)*+z`, Regex).
+
 gen_doc :-
     doc_latex(['automata',
                'automata/ast',
@@ -70,3 +73,15 @@ largest_subseq_sum(Seq, Max) :-
 
 % ?- largest_subseq_sum([3, -2, 5, -9, 7, 1], X).
 % X = 8.
+
+replace_tex(Out) -->
+    [], { Out = "" } ;
+    "*", replace_tex(Y), { string_concat("^*", Y, Out) } ;
+    [603], replace_tex(Y), { string_concat("\\epsilon", Y, Out) } ;
+    [X], replace_tex(Y), { text_to_string([X], Xs), string_concat(Xs, Y, Out) }.
+
+assignment_12a :-
+    invert_regex(`x(y+x)*+z`, Regex),
+    string_codes(Regex, Codes),
+    phrase(replace_tex(X), Codes),
+    format('$$~w$$', [X]).

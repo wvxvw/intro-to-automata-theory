@@ -1,4 +1,4 @@
-% Created 2015-09-22 Tue 22:59
+% Created 2015-09-24 Thu 22:07
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -324,6 +324,35 @@ a better regular expression.
 \item[{Serialize regexp to string}] Recursively visit every node of AST and
 substitue the node contents with its string representation.
 \end{description}
+
+
+Example code inverts a regular expression \(x(y+x)^*+z\).  However, the
+current version of this code lacks the ability to optimize the produced
+regular expressions.
+
+\lstset{language=prolog,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+:- use_module(automata).
+
+replace_tex(Out) -->
+    [], { Out = "" } ;
+    "*", replace_tex(Y),
+    { string_concat("^*", Y, Out) } ;
+    [603], replace_tex(Y),
+    { string_concat("\\epsilon", Y, Out) } ;
+    [X], replace_tex(Y),
+    { text_to_string([X], Xs), string_concat(Xs, Y, Out) }.
+
+assignment_12a :-
+    invert_regex(`x(y+x)*+z`, Regex),
+    string_codes(Regex, Codes),
+    phrase(replace_tex(X), Codes),
+    format('$$~w$$', [X]).
+\end{lstlisting}
+
+\((((zz+(zy+(zx+(yz+(yy+(yx+xz))))))+((\epsilon+y)+((zz+(zy+(zx+(yz+(yy+(yx+xz))))))((z+(y+x)))^*+((xy+xx)z+(xy+xx)((y+x))^*))))+((xy+xx)zz+((xy+xx)zy+(xy+xx)zx))(\epsilon+((z+(y+x)))^*))\)
+\((((zz+(zy+(zx+(yz+(yy+(yx+xz))))))+((\epsilon+y)+((zz+(zy+(zx+(yz+(yy+(yx+xz))))))((z+(y+x)))^*+((xy+xx)z+(xy+xx)((y+x))^*))))+((xy+xx)zz+((xy+xx)zy+(xy+xx)zx))(\epsilon+((z+(y+x)))^*))\)
+
 
 \subsection{Problem 5}
 \label{sec:orgheadline15}

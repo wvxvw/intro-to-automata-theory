@@ -304,6 +304,36 @@
     + Serialize regexp to string :: Recursively visit every node of AST and
          substitue the node contents with its string representation.
 
+
+    Example code inverts a regular expression $x(y+x)^*+z$.  However, the
+    current version of this code lacks the ability to optimize the produced
+    regular expressions.
+
+    #+HEADER: :system swipl :exports both :results raw
+    #+HEADER: :goal assignment_12a.
+    #+BEGIN_SRC prolog
+      :- use_module(automata).
+
+      replace_tex(Out) -->
+          [], { Out = "" } ;
+          "*", replace_tex(Y),
+          { string_concat("^*", Y, Out) } ;
+          [603], replace_tex(Y),
+          { string_concat("\\epsilon", Y, Out) } ;
+          [X], replace_tex(Y),
+          { text_to_string([X], Xs), string_concat(Xs, Y, Out) }.
+
+      assignment_12a :-
+          invert_regex(`x(y+x)*+z`, Regex),
+          string_codes(Regex, Codes),
+          phrase(replace_tex(X), Codes),
+          format('$$~w$$', [X]).
+    #+END_SRC
+
+    #+RESULTS:
+    $$(((zz+(zy+(zx+(yz+(yy+(yx+xz))))))+((\epsilon+y)+((zz+(zy+(zx+(yz+(yy+(yx+xz))))))((z+(y+x)))^*+((xy+xx)z+(xy+xx)((y+x))^*))))+((xy+xx)zz+((xy+xx)zy+(xy+xx)zx))(\epsilon+((z+(y+x)))^*))$$
+
+
 ** Problem 5
    Build a DFA from given NFA:
 

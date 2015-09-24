@@ -11,7 +11,14 @@
            trn_from/2,
            trn_to/2,
            trn_input/2,
-           trn_acc/2
+           trn_acc/2,
+           make_row/2,
+           make_state/2,
+           make_table/2,
+           row_state/2,
+           row_trns/2,
+           state_acc/2,
+           state_label/2
            ]).
 
 :- meta_predicate
@@ -27,9 +34,18 @@
        trn_from(+, -),
        trn_to(+, -),
        trn_input(+, -),
-       trn_acc(+, -).
+       trn_acc(+, -),
+       make_row(+, -),
+       make_state(+, -),
+       make_table(+, -),
+       row_state(+, -),
+       row_trns(+, -),
+       state_acc(+, -),
+       state_label(+, -).
 
-:- dynamic trn_from/2, trn_to/2, trn_input/2, trn_acc/2.
+:- dynamic trn_from/2, trn_to/2, trn_input/2, trn_acc/2, make_row/2,
+           make_state/2, make_table/2, row_state/2, row_trns/2,
+           state_acc/2, state_label/2.
 
 /** <module> Convert between different automata represenations
 
@@ -66,6 +82,7 @@ This module also defines data types:
 
 :- use_module('automata/parser').
 :- use_module('automata/ast').
+:- use_module('automata/printing').
 :- use_module(library(record)).
 :- use_module(library(error)).
 :- use_module(library(pairs)).
@@ -294,7 +311,7 @@ nfa_to_dfa_helper(table(Inputs, Table), Cache,
 enum(States, Assoc) :-
     length(States, Len),
     L is Len - 1,
-    findall(N, between(0, L, N), NList),
+    numlist(0, L, NList),
     pairs_keys_values(Paired, States, NList),
     ord_list_to_assoc(Paired, Assoc).
 
@@ -372,7 +389,8 @@ find_rule(N, Rules, Rule) :-
 
 reduce_rule(State-Rule, RulesIn, RulesOut) :-
     state_label(State, N),
-    findall(Rex, (member(Rl, Rule),
+    normalize_rule(Rule, NormRule),
+    findall(Rex, (member(Rl, NormRule),
                   (
                       Rl = R-[M] ->
                           (
@@ -395,8 +413,7 @@ reduce_rule(State-Rule, RulesIn, RulesOut) :-
                    Rex = Rl
                   )),
             NewRule),
-    normalize_rule(NewRule, NormRule),
-    select(State-Rule, RulesIn, State-NormRule, RulesOut).
+    select(State-Rule, RulesIn, State-NewRule, RulesOut).
 
 dead(_-[]).
 

@@ -1,7 +1,8 @@
 :- module('automata',
           [match_regex/2,
            match_suffix_regex/3,
-           match_all_regex/3
+           match_all_regex/3,
+           invert_regex/2
            ]).
 
 user:file_search_path(automata, './automata').
@@ -17,9 +18,11 @@ using regular expressions.
 :- meta_predicate
        match_regex(+, +),
        match_suffix_regex(+, +, -),
-       match_all_regex(+, +, -).
+       match_all_regex(+, +, -),
+       invert_regex(+, -).
 
 :- use_module(automata(convert)).
+:- use_module(automata(printing)).
 :- use_module(library(pldoc)).
 :- use_module(library(record)).
 :- use_module(library(error)).
@@ -29,7 +32,6 @@ using regular expressions.
 :- record match(str:list(integer), pos:integer).
 
 step(From, Input, Transitions, Trn) :-
-    format('step: ~w, ~w~n', [From, Input]),
     findall(T, (member(T, Transitions),
                 trn_input(T, Input),
                 trn_from(T, From)),
@@ -111,3 +113,40 @@ match_all_helper(N, Regex, String, Match) :-
 
 match_all_regex(Regex, String, Match) :-
     match_all_helper(0, Regex, String, Match).
+
+invert_bool(true, false).
+invert_bool(false, true).
+
+replace_all(_, _, [], []).
+replace_all(X, Y, [Z | Xs], [Z | Ys]) :-
+    dif(X, Z),
+    replace_all(X, Y, Xs, Ys).
+replace_all(X, Y, [X | Xs], [Y | Ys]) :-
+    replace_all(X, Y, Xs, Ys).
+
+%%  invert_regex(+Straight, -Inverted) is det.
+%
+%   Inverted is a regular expression accepting the complement language
+%   of the regular expression Straight.
+
+invert_regex(Straight, Inverted) :-
+    regex_to_nfa(Straight, Nfa),
+    nfa_to_dfa(Nfa, table(Inputs, Dfa)),
+    length(Dfa, Len),
+    same_length(Inputs, Empty),
+    maplist('='([]), Empty),
+    make_state([label(Len), acc(false)], Dead),
+    make_row([state(Dead), trns(Empty)], Last),
+    append(Dfa, [Last], Combined),
+    findall(T, (member(Row, Combined),
+                row_state(Row, S),
+                row_trns(Row, Trns),
+                replace_all([], [Len], Trns, NewTrns),
+                state_acc(S, Acc),
+                invert_bool(Acc, NewAcc),
+                state_label(S, L),
+                make_state([label(L), acc(NewAcc)], NewS),
+                make_row([state(NewS), trns(NewTrns)], T)),
+            InvertedRows),
+    make_table([inputs(Inputs), tab(InvertedRows)], InvertedDfa),
+    dfa_to_regex(InvertedDfa, Inverted).
