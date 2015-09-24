@@ -85,3 +85,8 @@ assignment_12a :-
     string_codes(Regex, Codes),
     phrase(replace_tex(X), Codes),
     format('$$~w$$', [X]).
+
+test_union_optimize(Optimized) :-
+    phrase('automata/parser':gexps(Parsed), `((((z+y)z+((z+y)y+(z+y)x))+((z+y)+(((z+y)z+((z+y)y+(z+y)x))((z+(y+x)))*+((xy+xx)z+((xy+xx)((y+x))*+xz(z+(y+x)))))))+(((xy+xx)zz+((xy+xx)zy+((xy+xx)zx+(xz(z+(y+x))z+(xz(z+(y+x))y+xz(z+(y+x))x)))))(ɛ+((z+(y+x)))*)+ɛ))`),
+    'automata/ast':optimize_unions(Parsed, Optimized),
+    format('Optimized: ~w~n', [Optimized]).
