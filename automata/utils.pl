@@ -32,16 +32,30 @@ reflexive_pairs(X, [Y | Ys], Pairs) :-
     reflexive_pair(X, [Y | Ys], Z),
     reflexive_pairs(Y, Ys, YPairs),
     append(Z, YPairs, Pairs).
+
+%%  reflexive_pairs(+Source, -Pairs) is det.
+%
+%   Evaluates to true when Pairs contains lists of length 2 each of
+%   which contains a unique pair from the elements of Source.  For
+%   this purpose [X, Y] = [Y, X].
+
 reflexive_pairs([X | Xs], Pairs) :-
     reflexive_pairs(X, Xs, Pairs).
 
 cmp_lists([], [], '=').
-cmp_lists([_], [], '>').
-cmp_lists([], [_], '<').
+cmp_lists(X, [], '>') :- X \== [].
+cmp_lists([], X, '<') :- X \== [].
 cmp_lists([X | _], [Y | _], '>') :- X > Y.
 cmp_lists([X | _], [Y | _], '<') :- X < Y.
 cmp_lists([X | Xs], [X | Ys], Result) :-
     cmp_lists(Xs, Ys, Result).
+
+%%  replace_all(+Searched, +Replacement, +Source, -Destination) is det.
+%
+%   Evaluates to true when Destination contains all the elements of
+%   Source with Searched element replaced by Replacement.
+%
+%   @see replace_all_lift/4, replace_all_tree/4, replace_all_tree_lift/4
 
 replace_all(_, _, [], []).
 replace_all(X, Y, [Z | Xs], [Z | Ys]) :-
@@ -49,6 +63,13 @@ replace_all(X, Y, [Z | Xs], [Z | Ys]) :-
     replace_all(X, Y, Xs, Ys).
 replace_all(X, Y, [X | Xs], [Y | Ys]) :-
     replace_all(X, Y, Xs, Ys).
+
+%%  replace_all_lift(+Replacement, +Searched, +Source, -Destination) is det.
+%
+%   Same as replace_all/4 except that Replacement element is
+%   substituted for each of the elements of Searched list.
+%
+%   @see replace_all/4, replace_all_tree/4, replace_all_tree_lift/4
 
 replace_all_lift(_, [], Zs, Zs).
 replace_all_lift(X, [Y | Ys], Zs, Qs) :-
@@ -66,9 +87,24 @@ replace_all_tree_helper(X, Y, [Z | Xs], [Qs | Zs]) :-
     is_list(Z),
     replace_all_tree_helper(X, Y, Z, Qs),
     replace_all_tree_helper(X, Y, Xs, Zs).
+
+%%  replace_all_tree(+Searched, +Replacement, +Source, -Destination) is det.
+%
+%   Same as replace_all/4 except that Searched cannot be a list, and
+%   all sublists of Source are processed recursively.
+%
+%   @see replace_all/4, replace_all_lift/4, replace_all_tree_lift/4
+
 replace_all_tree(X, Y, Xs, Ys) :-
     \+ is_list(X),
     replace_all_tree_helper(X, Y, Xs, Ys).
+
+%%  replace_all_tree_lift(+Searched, +Replacement, +Source, -Destination) is det.
+%
+%   Same as replace_all_tree/4 except that Replacement element is
+%   substituted for each of the elements of Searched list.
+%
+%   @see replace_all/4, replace_all_tree/4, replace_all_lift/4
 
 replace_all_tree_lift(_, [], Xs, Xs).
 replace_all_tree_lift(X, [Y | Ys], Xs, Zs) :-

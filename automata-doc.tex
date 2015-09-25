@@ -40,6 +40,10 @@ Instantiates \arg{Match} to all possible matches of \arg{Regex} in \arg{String}.
     \tag{See also}
 \predref{match_regex}{2}, \predref{match_suffix_regex}{3}
 \end{tags}
+
+    \predicate[det]{invert_regex}{2}{+Straight, -Inverted}
+\arg{Inverted} is a regular expression accepting the complement language
+of the regular expression \arg{Straight}.
 \end{description}
 
 \subsection{automata(ast): Grammar constituents used when parsing regular expressions}
@@ -186,6 +190,14 @@ Evaluates to true when \arg{Dfa} accepts the same language as \arg{Nfa}.
     \predicate[det]{table_to_diagram}{2}{+Table, -Diagram}
 Evaluates to true when \arg{Diagram} contains all the transitions
 described in \arg{Table}.
+
+    \predicate[det]{dfa_to_regex}{2}{+Dfa, -Regex}
+Evaluates to true when \arg{Regex} accepts the same language as the
+given \arg{Dfa}. \arg{Dfa} could be either a transitions table or a list of
+all transitions.
+
+    \predicate[det]{dfa_minimize}{2}{+Dfa, -Minimized}
+Evaluates to true when \arg{Minimized} is the minimal DFA of \arg{Dfa}.
 \end{description}
 
 \subsection{automata(parser): DCG rules for parsing regular expressions}
