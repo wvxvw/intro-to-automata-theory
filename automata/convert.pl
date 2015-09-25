@@ -1,6 +1,7 @@
 :- module('automata/convert',
           [regex_to_nfa/2,
            dfa_to_regex/2,
+           dfa_minimize/2,
            table_to_diagram/2,
            nfa_inputs/2,
            nfa_states/2,
@@ -24,6 +25,7 @@
 :- meta_predicate
        regex_to_nfa(+, -),
        dfa_to_regex(+, -),
+       dfa_minimize(+, -),
        table_to_diagram(+, -),
        nfa_inputs(+, -),
        nfa_states(+, -),
@@ -83,6 +85,7 @@ This module also defines data types:
 :- use_module('automata/parser').
 :- use_module('automata/ast').
 :- use_module('automata/printing').
+:- use_module('automata/utils').
 :- use_module(library(record)).
 :- use_module(library(error)).
 :- use_module(library(pairs)).
@@ -347,12 +350,13 @@ normalized_table(table(I, Denorm), table(I, Norm)) :-
 %
 %   Evaluates to true when Dfa accepts the same language as Nfa.
 
-nfa_to_dfa(Nfa, table(In, DfaTable)) :-
+nfa_to_dfa(Nfa, MinDfaTable) :-
     nfa_table(Nfa, table(Inputs, Table)),
     nfa_to_dfa_helper(table(Inputs, Table), [], [state([0], false)], UnsortedDfa-[]),
     sort([1, 1], @<, UnsortedDfa, SortedDfa),
     normalized_table(table(Inputs, SortedDfa), table(Inputs, DfaTable)),
-    exclude('='([]), Inputs, In).
+    exclude('='([]), Inputs, In),
+    dfa_minimize(table(In, DfaTable), MinDfaTable).
 
 %%  table_to_diagram(+Table, -Diagram) is det.
 %
@@ -460,3 +464,82 @@ dfa_to_regex(Dfa, Regex) :-
     is_list(Dfa),
     nfa_table(Dfa, Table),
     dfa_to_regex(Table, Regex).
+
+row_accepts(Row) :-
+    row_state(Row, State),
+    state_acc(State, true).
+
+cmp_trns([X | Xs], [Y | Ys], Result) :-
+    cmp_lists(X, Y, Res),
+    (
+        Res = '=' -> cmp_trns(Xs, Ys, Result)
+     ;
+     Result = Res
+    ).
+
+cmp_rows(Row1, Row2, '=') :-
+    row_trns(Row1, Trns),
+    row_trns(Row2, Trns).
+
+cmp_rows(Row1, Row2, Result) :-
+    row_trns(Row1, Trns1),
+    row_trns(Row2, Trns2),
+    cmp_trns(Trns1, Trns2, Result).
+
+classify_rows_helper([], Classes, [], [Classes]).
+classify_rows_helper(Less, Equal, [], Classes) :-
+    Less \== [],
+    classify_rows(Less, Classes1),
+    classify_rows(Equal, Classes2),
+    append(Classes1, Classes2, Classes).
+classify_rows_helper([], Equal, Greater, Classes) :-
+    Greater \== [],
+    classify_rows(Greater, Classes1),
+    classify_rows(Equal, Classes2),
+    append(Classes1, Classes2, Classes).
+classify_rows_helper(Less, Equal, Greater, Classes) :-
+    Less \== [], Greater \== [], 
+    classify_rows(Less, Classes1),
+    classify_rows(Equal, Classes2),
+    classify_rows(Greater, Classes3),
+    append([Classes1, Classes2, Classes3], Classes).
+
+classify_rows([T | Trns], Classes) :-
+    partition(cmp_rows(T), Trns, Less, Equal, Greater),
+    classify_rows_helper(Less, [T | Equal], Greater, Classes).
+
+replace_trns(L, Labels, OldRow, NewRow) :-
+    row_state(OldRow, S),
+    row_trns(OldRow, Ts),
+    findall(X, (member(T, Ts),
+                replace_all_tree_lift(L, Labels, T, X)),
+            NewTrns),
+    make_row([state(S), trns(NewTrns)], NewRow).
+
+relabel([], Out, Out).
+relabel([[_] | States], AccStates, Out) :-
+    relabel(States, AccStates, Out).
+relabel([[Row1, Row2 | Rows] | States], AccStates, Out) :-
+    row_state(Row1, S),
+    state_label(S, L),
+    findall(X, (member(R, [Row2, Rows]),
+                row_state(R, St),
+                state_label(St, X)),
+            Labels),
+    findall(NewA, (member([A | _], AccStates),
+                   replace_trns(L, Labels, A, NewA)),
+            NewAccStates),
+    relabel(States, NewAccStates, Out).
+
+%%  dfa_minimize(+Dfa, -Minimized) is det.
+%
+%   Evaluates to true when Minimized is the minimal DFA of Dfa.
+
+dfa_minimize(table(Inputs, Dfa), Minimized) :-
+    partition(row_accepts, Dfa, Accepting, Rejecting),
+    classify_rows(Accepting, AClasses),
+    classify_rows(Rejecting, RClasses),
+    append(AClasses, RClasses, Classes),
+    relabel(Classes, Classes, Relabeled),
+    sort([1, 1], @<, Relabeled, Sorted),
+    make_table([inputs(Inputs), tab(Sorted)], Minimized).

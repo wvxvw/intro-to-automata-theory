@@ -23,6 +23,7 @@ using regular expressions.
 
 :- use_module(automata(convert)).
 :- use_module(automata(printing)).
+:- use_module(automata(utils)).
 :- use_module(library(pldoc)).
 :- use_module(library(record)).
 :- use_module(library(error)).
@@ -116,13 +117,6 @@ match_all_regex(Regex, String, Match) :-
 
 invert_bool(true, false).
 invert_bool(false, true).
-
-replace_all(_, _, [], []).
-replace_all(X, Y, [Z | Xs], [Z | Ys]) :-
-    dif(X, Z),
-    replace_all(X, Y, Xs, Ys).
-replace_all(X, Y, [X | Xs], [Y | Ys]) :-
-    replace_all(X, Y, Xs, Ys).
 
 %%  invert_regex(+Straight, -Inverted) is det.
 %

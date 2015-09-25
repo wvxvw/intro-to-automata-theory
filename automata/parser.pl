@@ -95,7 +95,6 @@ gchar(rterminal(C), [X | Xs], Xs) :-
 
 ggroup(Exp, [40 | Prefix], Suffix) :-
     upto(41, Prefix, Group, Suffix),
-    text_to_string(Group, SGroup),
     balanced(40, 41, Group),
     phrase(gexps(Exp), Group).
 

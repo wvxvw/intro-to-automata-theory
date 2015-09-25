@@ -90,3 +90,35 @@ test_union_optimize(Optimized) :-
     phrase('automata/parser':gexps(Parsed), `((((z+y)z+((z+y)y+(z+y)x))+((z+y)+(((z+y)z+((z+y)y+(z+y)x))((z+(y+x)))*+((xy+xx)z+((xy+xx)((y+x))*+xz(z+(y+x)))))))+(((xy+xx)zz+((xy+xx)zy+((xy+xx)zx+(xz(z+(y+x))z+(xz(z+(y+x))y+xz(z+(y+x))x)))))(ɛ+((z+(y+x)))*)+ɛ))`),
     'automata/ast':optimize_unions(Parsed, Optimized),
     format('Optimized: ~w~n', [Optimized]).
+
+
+compact(N, [_], [M]) :- M is N + 1.
+compact(N, [X, X | Xs], Zs) :-
+    M is N + 1,
+    compact(M, [X | Xs], Zs).
+compact(N, [X, Y | Xs], [M | Zs]) :-
+    dif(X, Y),
+    M is N + 1,
+    compact(0, [Y | Xs], Zs).
+compact(In, Out) :-
+    compact(0, In, Out).
+
+five_dice_rolls(Results) :-
+    Die = [1, 2, 3, 4, 5, 6],
+    findall(X,
+            (member(A, Die),
+             member(B, Die),
+             member(C, Die),
+             member(D, Die),
+             member(E, Die),
+             sum_list([A, B, C, D, E], X)),
+            Rolls),
+    sort(0, @=<, Rolls, Sorted),
+    compact(Sorted, Compact),
+    numlist(5, 30, Seq),
+    pairs_keys_values(Results, Compact, Seq).
+
+test_dfa_minimize(X) :-
+    regex_to_nfa(`x(y+x)*+z`, Nfa),
+    nfa_to_dfa(Nfa, Dfa),
+    dfa_minimize(Dfa, X).

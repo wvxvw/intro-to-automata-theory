@@ -85,7 +85,7 @@ unions_to_lists(runion(A, B), C) :-
     unions_to_lists(A, A1), unions_to_lists(B, B1),
     join_unions(A1, B1, C).
 
-optimize_unions(Regex, Optimized) :-
-    format('optimizing: ~w~n', [Regex]),
-    unions_to_lists(Regex, Lists),
-    format('Lists: ~w~n', [Lists]).
+%% optimize_unions(Regex, Optimized) :-
+%%     format('optimizing: ~w~n', [Regex]),
+%%     unions_to_lists(Regex, Lists),
+%%     format('Lists: ~w~n', [Lists]).
