@@ -62,7 +62,8 @@ gen_doc :-
                'automata/ast',
                'automata/convert',
                'automata/parser',
-               'automata/printing'],
+               'automata/printing',
+               'automata/utils'],
               'automata-doc.tex',
               [stand_alone(false),
                section_level(subsection)]).

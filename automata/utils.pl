@@ -15,7 +15,7 @@
        replace_all_tree(+, +, +, -),
        replace_all_tree_lift(+, +, +, -).
 
-/** <module> Vairous utilitis for working with lists.
+/** <module> Vairous utilitis for working with lists
 
 This module defines several utilities for working with lists
 used across multiple other automata modules.
@@ -37,10 +37,15 @@ reflexive_pairs(X, [Y | Ys], Pairs) :-
 %
 %   Evaluates to true when Pairs contains lists of length 2 each of
 %   which contains a unique pair from the elements of Source.  For
-%   this purpose [X, Y] = [Y, X].
+%   this purpose `[X, Y]` is the same as `[Y, X]`.
 
 reflexive_pairs([X | Xs], Pairs) :-
     reflexive_pairs(X, Xs, Pairs).
+
+%%  cmp_lists(+List1, +List2, -Op) is det.
+%
+%   Lexicographically compares List1 and List2.  Op is set to either
+%   one of `<`, `=` and `>` respectively.
 
 cmp_lists([], [], '=').
 cmp_lists(X, [], '>') :- X \== [].

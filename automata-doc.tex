@@ -281,3 +281,62 @@ Pretty-prints the contents of the transitions table.
 \end{tags}
 \end{description}
 
+\subsection{automata(utils): Vairous utilitis for working with lists}
+
+\label{sec:utils}
+
+\begin{tags}
+    \tag{See also}
+\url{https://github.com/wvxvw/intro-to-automata-theory}
+\end{tags}
+
+This module defines several utilities for working with lists
+used across multiple other automata modules.\vspace{0.7cm}
+
+\begin{description}
+    \predicate[det]{reflexive_pairs}{2}{+Source, -Pairs}
+Evaluates to true when \arg{Pairs} contains lists of length 2 each of
+which contains a unique pair from the elements of \arg{Source}. For
+this purpose \verb$[X, Y]$ is the same as \verb$[Y, X]$.
+
+    \predicate[det]{cmp_lists}{3}{+List1, +List2, -Op}
+Lexicographically compares \arg{List1} and \arg{List2}. \arg{Op} is set to either
+one of \verb$<$, \verb$=$ and \verb$>$ respectively.
+
+    \predicate[det]{replace_all}{4}{+Searched, +Replacement, +Source, -Destination}
+Evaluates to true when \arg{Destination} contains all the elements of
+\arg{Source} with \arg{Searched} element replaced by \arg{Replacement}.
+
+\begin{tags}
+    \tag{See also}
+\predref{replace_all_lift}{4}, \predref{replace_all_tree}{4}, \predref{replace_all_tree_lift}{4}
+\end{tags}
+
+    \predicate[det]{replace_all_lift}{4}{+Replacement, +Searched, +Source, -Destination}
+Same as \predref{replace_all}{4} except that \arg{Replacement} element is
+substituted for each of the elements of \arg{Searched} list.
+
+\begin{tags}
+    \tag{See also}
+\predref{replace_all}{4}, \predref{replace_all_tree}{4}, \predref{replace_all_tree_lift}{4}
+\end{tags}
+
+    \predicate[det]{replace_all_tree}{4}{+Searched, +Replacement, +Source, -Destination}
+Same as \predref{replace_all}{4} except that \arg{Searched} cannot be a list, and
+all sublists of \arg{Source} are processed recursively.
+
+\begin{tags}
+    \tag{See also}
+\predref{replace_all}{4}, \predref{replace_all_lift}{4}, \predref{replace_all_tree_lift}{4}
+\end{tags}
+
+    \predicate[det]{replace_all_tree_lift}{4}{+Searched, +Replacement, +Source, -Destination}
+Same as \predref{replace_all_tree}{4} except that \arg{Replacement} element is
+substituted for each of the elements of \arg{Searched} list.
+
+\begin{tags}
+    \tag{See also}
+\predref{replace_all}{4}, \predref{replace_all_tree}{4}, \predref{replace_all_lift}{4}
+\end{tags}
+\end{description}
+
