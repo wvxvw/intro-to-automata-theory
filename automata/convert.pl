@@ -111,8 +111,12 @@ error:has_type(row, X) :- default_row(X).
 
 has(Accessor, Value, Record) :- call(Accessor, Record, Value).
 
-vre_to_nfa_helper(rterminal(X), From, To, [trn(From, To, X, Final)], P, P) :-
-    ( To = 1 -> Final = true ; Final = false ).
+is_last_state(1, true).
+is_last_state(X, false) :- X \== 1.
+
+vre_to_nfa_helper(rterminal(X), From, To, [NewTrn], P, P) :-
+    is_last_state(To, Acc),
+    make_trn([from(From), to(To), input(X), acc(Acc)], NewTrn).
 vre_to_nfa_helper(rconcat(L, R), From, To, Diagram, Prev, Next) :-
     Next1 is Prev + 1,
     vre_to_nfa_helper(L, From, Prev, Left, Next1, Next2),
@@ -143,14 +147,15 @@ vregex_to_nfa(Regex, Diagram) :-
 
 regex_to_nfa(Regex, Diagram) :-
     phrase(gexps(Parsed), Regex),
-    %% format('Parsed = ~w~n', [Parsed]),
     vregex_to_nfa(Parsed, Diagram).
 
 nfa_inputs_helper([], X, X).
-nfa_inputs_helper([trn(_, _, X, _) | Diagram], Acc, Inputs) :-
+nfa_inputs_helper([Trn | Diagram], Acc, Inputs) :-
+    trn_input(Trn, X),
     (
         member(X, Acc) ->
-            nfa_inputs_helper(Diagram, Acc, Inputs) ;
+            nfa_inputs_helper(Diagram, Acc, Inputs)
+     ;
         nfa_inputs_helper(Diagram, [X | Acc], Inputs)
     ).
 
@@ -161,12 +166,13 @@ nfa_inputs_helper([trn(_, _, X, _) | Diagram], Acc, Inputs) :-
 nfa_inputs(Diagram, Inputs) :-
     nfa_inputs_helper(Diagram, [], Inputs).
 
-accepting(N, Diagram, true) :-
-    include(has(trn_to, N), Diagram, [trn(_, _, _, true) | _]), !.
-accepting(_, _, false).
+accepting(N, Diagram, Acc) :-
+    foreach((member(T, Diagram), trn_to(T, N)), trn_acc(T, Acc)).
 
 nfa_states_helper([], _, X, X).
-nfa_states_helper([trn(From, To, _, _) | Diagram], Transitions, Acc, States) :-
+nfa_states_helper([Trn | Diagram], Transitions, Acc, States) :-
+    trn_from(Trn, From),
+    trn_from(Trn, To),
     accepting(From, Transitions, FromAcc),
     accepting(To, Transitions, ToAcc),
     (
