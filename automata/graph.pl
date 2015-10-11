@@ -1,21 +1,25 @@
 :- module('automata/graph',
           [make_graph/2,
            add_arc/4,
+           add_arcs/3,
            has_arc/3,
            find_vertex/3,
            vertex_value/2,
            vertex_arcs/2,
-           make_vertex/2
+           make_vertex/2,
+           neighbours/2
           ]).
 
 :- meta_predicate
        make_graph(+, -),
        add_arc(+, +, +, -),
+       add_arcs(+, +, -),
        has_arc(+, +, +),
        find_vertex(+, +, -),
        vertex_value(?, ?),
        vertex_arcs(?, ?),
-       make_vertex(?, ?).
+       make_vertex(?, ?),
+       neighbours(?, ?).
 
 :- dynamic vertex_value/2, vertex_arcs/2, make_vertex/2.
 
@@ -73,6 +77,11 @@ add_arc(From, To, OldGraph, NewGraph) :-
     vertex_arcs(VertexFrom, Arcs),
     lookup(VertexTo, Arcs).
 
+add_arcs([], Graph, Graph).
+add_arcs([From-To | Xs], OldGraph, NewGraph) :-
+    add_arc(From, To, OldGraph, InterimGraph),
+    add_arcs(Xs, InterimGraph, NewGraph).
+
 make_graph_helper([], Graph, Graph).
 make_graph_helper([From-To | Vs], GraphIn, GraphOut) :-
     add_arc(From, To, GraphIn, NewGraph),
@@ -80,10 +89,13 @@ make_graph_helper([From-To | Vs], GraphIn, GraphOut) :-
 
 make_graph(Vs, Graph) :- make_graph_helper(Vs, [], Graph).
 
+neighbours(Vertex, Neighbours) :-
+    vertex_arcs(Vertex, Arcs),
+    instantiated(vertex_instantiated, Arcs, Neighbours).
+
 has_arc(Graph, From, To) :-
     find_vertex(From, Graph, FromVertex),
-    vertex_arcs(FromVertex, Arcs),
-    instantiated(vertex_instantiated, Arcs, InstArcs),
+    neighbours(FromVertex, InstArcs),
     findnsols(1, A, (member(A, InstArcs),
                      vertex_value(A, To)),
               [_]).
