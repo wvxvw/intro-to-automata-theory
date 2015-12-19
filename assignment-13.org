@@ -25,15 +25,17 @@
 
 #+BEGIN_SRC emacs-lisp :exports none
   (setq org-latex-pdf-process
-          '("latexmk -pdflatex='pdflatex -shell-escape -interaction nonstopmode' -pdf -f %f")
-          org-latex-listings t
-          org-src-fontify-natively t
-          org-latex-custom-lang-environments '((maxima "maxima"))
-          org-listings-escape-inside '("(*@" . "@*)")
-          org-babel-latex-htlatex "htlatex")
+        '("latexmk -pdflatex='pdflatex -shell-escape -interaction nonstopmode' -pdf -f %f")
+        org-latex-listings t
+        org-src-fontify-natively t
+        org-latex-custom-lang-environments '((maxima "maxima"))
+        org-listings-escape-inside '("(*@" . "@*)")
+        org-babel-latex-htlatex "htlatex")
+
   (defmacro by-backend (&rest body)
-      `(cl-case (when (boundp 'backend) (org-export-backend-name backend))
-         ,@body))
+    `(cl-case (when (boundp 'backend)
+                (org-export-backend-name backend))
+       ,@body))
 #+END_SRC
 
 #+RESULTS:
