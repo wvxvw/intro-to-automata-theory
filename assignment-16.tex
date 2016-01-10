@@ -1,0 +1,152 @@
+% Created 2016-01-10 Sun 23:47
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\tolerance=1000
+\usepackage[utf8]{inputenc}
+\usepackage{commath}
+\usepackage{pgf}
+\usepackage{tikz}
+\usetikzlibrary{shapes,backgrounds}
+\usepackage{marginnote}
+\usepackage{listings}
+\usepackage{enumerate}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{mathtools}
+\usetikzlibrary{arrows,automata}
+\setlength{\parskip}{16pt plus 2pt minus 2pt}
+\renewcommand{\arraystretch}{1.6}
+\DeclareMathOperator{\Neg}{Neg}
+\author{Oleg Sivokon}
+\date{\textit{<2016-01-01 Fri>}}
+\title{Assignment 15, Authomata Theory}
+\hypersetup{
+  pdfkeywords={Automata Theory, Formal Languages, Assignment},
+  pdfsubject={Fifth assignment in the course 20440 Automata and Formal Languages},
+  pdfcreator={Emacs 24.5.1 (Org mode 8.2.10)}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+
+\definecolor{codebg}{rgb}{0.96,0.99,0.8}
+\definecolor{codestr}{rgb}{0.46,0.09,0.2}
+\lstset{%
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\scriptsize,
+  breakatwhitespace=false,
+  breaklines=false,
+  captionpos=b,
+  framexleftmargin=10pt,
+  xleftmargin=10pt,
+  framerule=0pt,
+  frame=tb,
+  keepspaces=true,
+  keywordstyle=\color{blue},
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  stringstyle=\color{codestr},
+  tabsize=2
+}
+\lstnewenvironment{maxima}{%
+  \lstset{%
+    backgroundcolor=\color{codebg},
+    escapeinside={(*@}{@*)},
+    aboveskip=20pt,
+    captionpos=b,
+    label=,
+    caption=,
+    showstringspaces=false,
+    frame=single,
+    framerule=0pt,
+    basicstyle=\ttfamily\scriptsize,
+    columns=fixed}}{}
+}
+\makeatletter
+\newcommand{\verbatimfont}[1]{\renewcommand{\verbatim@font}{\ttfamily#1}}
+\makeatother
+\verbatimfont{\small}%
+\clearpage
+
+\section{Problems}
+\label{sec-1}
+
+\subsection{Problem 1}
+\label{sec-1-1}
+Given context-free grammar $V = \{S,M,N,W,X,Y,Z\}$ s.t. $T=\{1,0\}$
+
+\begin{align*}
+  &S \to M \;|\; XN \;|\; W \;|\; 0N \;|\; 1Z1 \\
+  &M \to 0M0 \;|\; N \\
+  &N \to N0 \;|\; 0 \\
+  &W \to 0W \;|\; 00W0 \\
+  &X \to 0X1 \;|\; 0 \;|\; 0Y0 \\
+  &Z \to W \;.
+\end{align*}
+
+
+\begin{enumerate}
+\item Is $V$ ambiguous?
+\item Give a normalized grammar equivalent to $V$.
+\end{enumerate}
+
+\subsubsection{Answer 2}
+\label{sec-1-1-1}
+It is easier to normalize the grammar first and then to look for ambiguities,
+thus the answers are in reverse order.
+\begin{enumerate}
+\item Any derivation containing $W$ cannot terminate, and so does $Z$.
+\item Further, we can eliminate the rule $M \to N$.
+\item $Y$ has no derivation rules, thus we can also remove it.
+\end{enumerate}
+
+Thus obtaining:
+\begin{align*}
+  &S \to M \;|\; XM \;|\; 0M \\
+  &M \to 0M0 \;|\; 0 \;|\; 0M \\
+  &X \to 0X1 \;|\; 0 \;.
+\end{align*}
+
+\begin{enumerate}
+\item It is easy to see that $M$ derives number of zeros greater than one,
+thus $M \to 0M0$ is redundant.  Subsequently, $S \to 0M$ is already
+covered by $S \to M$.
+\end{enumerate}
+
+
+What remains is:
+\begin{align*}
+  &S \to M \;|\; XM \\
+  &M \to 0 \;|\; 0M \\
+  &X \to 0 \;|\; 0X1 \;.
+\end{align*}
+
+\subsubsection{Answer 1}
+\label{sec-1-1-2}
+Now it is easy to see that the string 00 can be derived in two different
+ways:
+
+\begin{itemize}
+\item $S \to M$, $M \to 0M$, $M \to 0$.
+\item $S \to XM$, $X \to 0$, $M \to 0$.
+\end{itemize}
+
+Hence $V$ is ambiguous.
+% Emacs 24.5.1 (Org mode 8.2.10)
+\end{document}
