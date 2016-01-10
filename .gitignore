@@ -1,1 +1,3 @@
-/httpd.log
+*~
+*_latexmk
+*.fls
