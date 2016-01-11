@@ -1,4 +1,4 @@
-% Created 2016-01-10 Sun 23:47
+% Created 2016-01-11 Mon 22:54
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -148,5 +148,62 @@ ways:
 \end{itemize}
 
 Hence $V$ is ambiguous.
+\subsection{Problem 2}
+\label{sec-1-2}
+Given context-free grammar $V = \{S,M,N,W,X,Y,Z\}$ s.t. $T=\{1,0\}$
+
+\begin{align*}
+  &S \to 0W11 \;|\; 0X1 \;|\; 0Y \\
+  &W \to S \;|\; Z \\
+  &X \to S \;|\; W \\
+  &Y \to 1 \\
+  &Z \to X \;.
+\end{align*}
+
+
+\begin{enumerate}
+\item Bring $V$ to Chomsky's normal form.
+\item What is the language of $V$?
+\end{enumerate}
+
+\subsubsection{Answer 3}
+\label{sec-1-2-1}
+\begin{enumerate}
+\item We can easily eliminate $Y$ variable, thus removing $Y \to 1$ rule,
+and adding $S \to 01$ rule.
+\item We can eliminate $Z$ variable by removing $Z \to X$ and $W \to Z$ rules
+and adding $W \to X$ rule.
+\item We can eliminate $X$ variable by removing $X \to S \;|\; W$ and $S \to
+       0X1$ rules, and adding: $S \to 0S1$ rule.
+\item Finally, we can eliminate $W$ variable by removing $W \to S$ and $S \to
+       0W11$ rules and adding $S \to 0S11$ rule.
+\end{enumerate}
+
+
+The resulting grammar will be:
+
+\begin{align*}
+  &S \to 0S11 \;|\; 0S1 \;|\; 01 \;.
+\end{align*}
+
+
+Since this is still not CNF, I introduce an extra variable: $X$ and
+derivation rules $X \to 0$, $Y \to 1 \;|\; 11$ and $Z \to SY$ thus
+obtaining:
+
+\begin{align*}
+  &S \to XZ \;|\; 01 \\
+  &X \to 0 \\
+  &Y \to 1 \;|\; 11 \\
+  &Z \to SY \;.
+\end{align*}
+
+
+Which is in CNF.
+
+\subsubsection{Answer 4}
+\label{sec-1-2-2}
+Using the results from the previous answer it is easy to see that
+the language $L(V)=\{0^n1^k \;|\; n \leq k \land n,k > 0\}$.
 % Emacs 24.5.1 (Org mode 8.2.10)
 \end{document}

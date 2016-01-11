@@ -146,3 +146,62 @@
     + $S \to XM$, $X \to 0$, $M \to 0$.
       
     Hence $V$ is ambiguous.
+** Problem 2
+   Given context-free grammar $V = \{S,M,N,W,X,Y,Z\}$ s.t. $T=\{1,0\}$
+   
+   #+HEADER: :exports results
+   #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+   #+BEGIN_SRC latex
+     \begin{align*}
+       &S \to 0W11 \;|\; 0X1 \;|\; 0Y \\
+       &W \to S \;|\; Z \\
+       &X \to S \;|\; W \\
+       &Y \to 1 \\
+       &Z \to X \;.
+     \end{align*}
+   #+END_SRC
+   
+   1. Bring $V$ to Chomsky's normal form.
+   2. What is the language of $V$?
+
+*** Answer 3
+    1. We can easily eliminate $Y$ variable, thus removing $Y \to 1$ rule,
+       and adding $S \to 01$ rule.
+    2. We can eliminate $Z$ variable by removing $Z \to X$ and $W \to Z$ rules
+       and adding $W \to X$ rule.
+    3. We can eliminate $X$ variable by removing $X \to S \;|\; W$ and $S \to
+       0X1$ rules, and adding: $S \to 0S1$ rule.
+    4. Finally, we can eliminate $W$ variable by removing $W \to S$ and $S \to
+       0W11$ rules and adding $S \to 0S11$ rule.
+       
+       
+    The resulting grammar will be:
+    
+    #+HEADER: :exports results
+    #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+    #+BEGIN_SRC latex
+      \begin{align*}
+        &S \to 0S11 \;|\; 0S1 \;|\; 01 \;.
+      \end{align*}
+    #+END_SRC
+    
+    Since this is still not CNF, I introduce an extra variable: $X$ and
+    derivation rules $X \to 0$, $Y \to 1 \;|\; 11$ and $Z \to SY$ thus
+    obtaining:
+    
+    #+HEADER: :exports results
+    #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+    #+BEGIN_SRC latex
+      \begin{align*}
+        &S \to XZ \;|\; 01 \\
+        &X \to 0 \\
+        &Y \to 1 \;|\; 11 \\
+        &Z \to SY \;.
+      \end{align*}
+    #+END_SRC
+    
+    Which is in CNF.
+
+*** Answer 4
+    Using the results from the previous answer it is easy to see that
+    the language $L(V)=\{0^n1^k \;|\; n \leq k \land n,k > 0\}$.
