@@ -205,3 +205,86 @@
 *** Answer 4
     Using the results from the previous answer it is easy to see that
     the language $L(V)=\{0^n1^k \;|\; n \leq k \land n,k > 0\}$.
+
+** Problem 3
+   Build a PDA accepting the language $L$ by emptying the stack.
+
+   #+HEADER: :exports results
+   #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+   #+BEGIN_SRC latex
+     \begin{align*}
+       L = \{ a^{i_1}b^{j_1}a^{i_2}b^{j_2}\dots a^{i_m}b^{j_m}
+            &\;|\; m \geq 1 \\
+            &\;|\; \forall k: i_k \geq j_k \geq 1 \\
+            &\;|\; \exists k: i_k > j_k \}
+     \end{align*}
+   #+END_SRC
+
+*** Answer 5
+    First, I'll write the grammar for $L$ (because it's easier to do):
+
+    #+HEADER: :exports results
+    #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+    #+BEGIN_SRC latex
+      \begin{align*}
+        &S \to aSb \;|\; K \;|\; SS \\
+        &K \to aKb \;|\; aaKb \\
+        &X \to aXb \;|\; aaXb \;|\; \epsilon \;.
+      \end{align*}
+    #+END_SRC
+
+    1. $X$ generates strings of the form $\{ a^nb^m \;|\; n \geq m \}$.
+    2. Similarly, $K$ generates strings of the form $\{ a^nb^m \;|\; n > m \}$.
+    3. The derivatin of $S$ can only terminate when it eventually derives either
+       $K$.  It can repeat as many times as needed to accept the entire string.
+       Where the repeated element is, again, of the form of either $\{ a^nb^m
+        \;|\; n \geq m \}$, or  $\{ a^nb^m \;|\; n > m \}$.
+        
+    Thus, at least informally, we are convinced the grammar generates $L$.
+
+    Now, the automaton:
+
+    #+HEADER: :exports results
+    #+HEADER: :results latex
+    #+BEGIN_SRC latex
+      \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
+                          semithick]
+
+        \node[initial,state]   (A)              {$q_0$};
+        \node[state]           (B) [right of=A, above of=A] {$q_1$};
+        \node[state]           (C) [right of=B, below of=B] {$q_2$};
+        \node[state]           (D) [below of=A] {$q_3$};
+        \node[state]           (E) [right of=D] {$q_4$};
+        \node[state]           (F) [right of=E] {$q_5$};
+        \node[accepting,state] (G) [below of=E] {$q_6$};
+        \node[state]           (H) [left of=G, below of=G] {$q_7$};
+        \node[state]           (J) [right of=G, below of=G] {$q_8$};
+
+        \path (A) edge              node {$a \to A/AA$} (B)
+                  edge              node {$\epsilon$} (D)
+              (B) edge [loop above] node {$a \to A/AA$} (B)
+                  edge              node {$\epsilon$} (C)
+              (C) edge [loop above] node {$b \to A/A$} (C)
+                  edge              node {$b \to Z/Z$} (A)
+              (D) edge              node {$a \to A/AA$} (E)
+              (E) edge [loop above] node {$a \to A/AA$} (E)
+                  edge              node {$\epsilon \to A/A$} (F)
+              (F) edge [loop above, align=center] node {$b \to A/A$ \\ $\epsilon \to A/A$} (F)
+                  edge              node {$b \to Z/Z$} (G)
+              (G) edge              node {$\epsilon$} (H)
+              (H) edge [loop below] node {$a \to A/AA$} (G)
+                  edge              node {$\epsilon$} (J)
+              (J) edge [loop below, align=center] node {$\epsilon \to A/A$ \\ $b \to A/A$} (J)
+                  edge              node {$\epsilon \to Z/Z$} (G);
+      \end{tikzpicture}
+    #+END_SRC
+
+    The idea behind this diagram is as follows:
+    1. Loop as many times as needed (possibly zero) over strings $a^nb^n$, where
+       $n \geq 1$.
+    2. Nondeterministically parse a string $a^nb^m$ where $n > m$.
+    3. Loop as many times as needed (possibly zero) over strings $a^nb^m$ where
+       $n \geq m$.
+    4. Before accepting state, keep discarding $A$ until none remain for as long as
+       you don't see an $a$.
+    5. Accept the string.
