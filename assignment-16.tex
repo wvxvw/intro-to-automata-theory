@@ -1,4 +1,4 @@
-% Created 2016-01-14 Thu 00:14
+% Created 2016-01-14 Thu 23:25
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -243,32 +243,36 @@ Now, the automaton:
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
                     semithick]
 
-  \node[initial,state]   (A)              {$q_0$};
+  \node[initial,state]   (A)                          {$q_0$};
   \node[state]           (B) [right of=A, above of=A] {$q_1$};
   \node[state]           (C) [right of=B, below of=B] {$q_2$};
-  \node[state]           (D) [below of=A] {$q_3$};
-  \node[state]           (E) [right of=D] {$q_4$};
-  \node[state]           (F) [right of=E] {$q_5$};
-  \node[accepting,state] (G) [below of=E] {$q_6$};
-  \node[state]           (H) [left of=G, below of=G] {$q_7$};
+  \node[state]           (D) [below of=A]             {$q_3$};
+  \node[state]           (E) [right of=D]             {$q_4$};
+  \node[state]           (F) [right of=E]             {$q_5$};
+  \node[accepting,state] (G) [below of=E]             {$q_6$};
+  \node[state]           (H) [left of=G, below of=G]  {$q_7$};
   \node[state]           (J) [right of=G, below of=G] {$q_8$};
 
-  \path (A) edge              node {$a \to A/AA$} (B)
-            edge              node {$\epsilon$} (D)
-        (B) edge [loop above] node {$a \to A/AA$} (B)
-            edge              node {$\epsilon$} (C)
-        (C) edge [loop above] node {$b \to A/A$} (C)
-            edge              node {$b \to Z/Z$} (A)
-        (D) edge              node {$a \to A/AA$} (E)
-        (E) edge [loop above] node {$a \to A/AA$} (E)
-            edge              node {$\epsilon \to A/A$} (F)
-        (F) edge [loop above, align=center] node {$b \to A/A$ \\ $\epsilon \to A/A$} (F)
-            edge              node {$b \to Z/Z$} (G)
-        (G) edge              node {$\epsilon$} (H)
-        (H) edge [loop below] node {$a \to A/AA$} (G)
-            edge              node {$\epsilon$} (J)
-        (J) edge [loop below, align=center] node {$\epsilon \to A/A$ \\ $b \to A/A$} (J)
-            edge              node {$\epsilon \to Z/Z$} (G);
+  \path (A) edge              node {$a, \epsilon \to A$}         (B)
+            edge              node {$\epsilon$}                  (D)
+        (B) edge [loop above] node {$a, A \to AA$}               (B)
+            edge              node {$\epsilon$}                  (C)
+        (C) edge [loop above] node {$b, A \to \epsilon$}         (C)
+            edge              node {$b, Z \to \epsilon$}         (A)
+        (D) edge              node {$a, A \to AA$}               (E)
+        (E) edge [loop above] node {$a, A \to AA$}               (E)
+            edge              node {$\epsilon, A \to \epsilon$}  (F)
+        (F) edge [loop above, align=center] node {
+                                    $b, A \to \epsilon$ \\
+                                    $\epsilon, A \to \epsilon$}  (F)
+            edge              node {$b, Z \to \epsilon$}         (G)
+        (G) edge              node {$\epsilon$}                  (H)
+        (H) edge [loop below] node {$a, A \to AA$}               (G)
+            edge              node {$\epsilon$}                  (J)
+        (J) edge [loop below, align=center] node {
+                                    $\epsilon, A \to \epsilon$ \\
+                                    $b, A \to \epsilon$}         (J)
+            edge              node {$\epsilon, Z \to \epsilon$}  (G);
 \end{tikzpicture}
 
 The idea behind this diagram is as follows:
@@ -281,6 +285,68 @@ $n \geq m$.
 \item Before accepting state, keep discarding $A$ until none remain for as long as
 you don't see an $a$.
 \item Accept the string.
+\end{enumerate}
+\subsection{Problem 4}
+\label{sec-1-4}
+Construct a PDA for $L$ defined as follows:
+\begin{align*}
+  L = \{ dw_1dw_2d\dots w_nd
+       &\;|\; n \geq 3 \\
+       &\;|\; \forall k: w_k \in \{a,b,c\}^* \\
+       &\;|\; \exists k: 1 \leq k \leq n - 2 \land \abs{w_k} = \#_c(w_{k+2}) \}
+\end{align*}
+
+\subsubsection{Answer 6}
+\label{sec-1-4-1}
+The automaton for $L$ may look like this:
+
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
+                    semithick]
+
+  \node[initial,state]   (A)              {$q_0$};
+  \node[state]           (B) [right of=A] {$q_1$};
+  \node[state]           (C) [below of=B] {$q_2$};
+  \node[state]           (D) [left of=C]  {$q_3$};
+  \node[state]           (E) [left of=D]  {$q_4$};
+  \node[state,accepting] (F) [left of=A]  {$q_5$};
+  \node[state]           (G) [above of=F] {$q_6$};
+
+  \path (A) edge              node {$d$}                 (B)
+        (B) edge [loop above] node {$a,b,c,d$}           (B)
+            edge              node {$d, \epsilon \to Z$} (C)
+        (C) edge [loop right, align=center] node {
+                                   $a, A \to AA$ \\
+                                   $b, A \to AA$ \\
+                                   $c, A \to AA$}         (C)
+            edge              node {$d$}                 (D)
+        (D) edge [loop above] node {$a,b,c$}             (D)
+            edge              node {$d$}                 (E)
+        (E) edge [loop left]  node {$c, A \to \epsilon$} (E)
+            edge              node {$d, Z \to \epsilon$} (F)
+        (F) edge              node {$a,b,c$}             (G)
+        (G) edge [loop left]  node {$a,b,c$}             (G)
+            edge              node {$d$}                 (F);
+\end{tikzpicture}
+
+\emph{(Whenever stack symbols neither read, nor added nor removed, they are}
+\emph{omitted from the diagram to make it easier to read)}
+
+The rationale for this diagram is as follows:
+\begin{enumerate}
+\item Read the first $d$.
+\item Keep reading as many of $as$, $bs$, $cs$ or $ds$ as necessary.
+\item Non-deterministically, upon reading $d$ assume reading the
+``special'' sequence of $as$, $bs$ and $cs$, which must be equal
+in length to the sequence of $cs$ to follow after.
+``Notice'' this even by pushing $Z$ on stack.
+\item Read $as$, $bs$ and $cs$ pushing $As$ on stack.
+\item Read $d$.
+\item Read any number of $as$, $bs$ or $cs$.
+\item Upon reading $d$ start reading $cs$ while discarding $As$.
+\item Once you pop $Z$ you also must read $d$, this will ensure the number of
+$cs$ is the same as the number of $as$, $bs$ and $cs$, read in step (4).
+\item After this had happened, we've already found the ``special'' substring,
+now we just need to make sure to terminate when we read $d$.
 \end{enumerate}
 % Emacs 24.5.1 (Org mode 8.2.10)
 \end{document}
