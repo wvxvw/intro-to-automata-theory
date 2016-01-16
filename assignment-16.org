@@ -228,17 +228,17 @@
     #+BEGIN_SRC latex
       \begin{align*}
         &S \to aSb \;|\; K \;|\; SS \\
-        &K \to aKb \;|\; aaKb \\
+        &K \to aKb \;|\; aaXb \\
         &X \to aXb \;|\; aaXb \;|\; \epsilon \;.
       \end{align*}
     #+END_SRC
 
     1. $X$ generates strings of the form $\{ a^nb^m \;|\; n \geq m \}$.
     2. Similarly, $K$ generates strings of the form $\{ a^nb^m \;|\; n > m \}$.
-    3. The derivatin of $S$ can only terminate when it eventually derives either
-       $K$.  It can repeat as many times as needed to accept the entire string.
-       Where the repeated element is, again, of the form of either $\{ a^nb^m
-        \;|\; n \geq m \}$, or  $\{ a^nb^m \;|\; n > m \}$.
+    3. The derivatin of $S$ can only terminate when it eventually derives $K$.
+       It can repeat as many times as needed to accept the entire string.  Where
+       the repeated element is, again, of the form of either $\{ a^nb^m \;|\; n
+       \geq m \}$, or $\{ a^nb^m \;|\; n > m \}$.
         
     Thus, at least informally, we are convinced the grammar generates $L$.
 
@@ -350,7 +350,7 @@
     3. Non-deterministically, upon reading $d$ assume reading the
        ``special'' sequence of $as$, $bs$ and $cs$, which must be equal
        in length to the sequence of $cs$ to follow after.
-       ``Notice'' this even by pushing $Z$ on stack.
+       ``Notice'' this event by pushing $Z$ on stack.
     4. Read $as$, $bs$ and $cs$ pushing $As$ on stack.
     5. Read $d$.
     6. Read any number of $as$, $bs$ or $cs$.
@@ -359,3 +359,126 @@
        $cs$ is the same as the number of $as$, $bs$ and $cs$, read in step (4).
     9. After this had happened, we've already found the ``special'' substring,
        now we just need to make sure to terminate when we read $d$.
+
+** Problem 5
+   Given language $L=\{a^kb^ic^jd^{j-i}e^k \;|\; 1 \leq i \leq j, k \geq 2 \}$
+   build a deterministic PDA accepting it.
+
+*** Answer 7
+    First, to better understand the language, I'll give its grammar:
+
+    #+HEADER: :exports results
+    #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+    #+BEGIN_SRC latex
+      \begin{align*}
+        &S \to aaXbb \\
+        &X \to aXb \;|\; YZ \\
+        &Y \to bYc \;|\; bc \\
+        &Z \to cZd \;|\; \epsilon \;.
+      \end{align*}
+    #+END_SRC
+
+    Informally, the language consists of three ``major chunks'':
+    1. An even number of $as$ and $es$ on the edges (which also, eventually,
+       must be longer than four).
+    2. The middle ``chunk'' is split into two parts:
+       + An even number of $bs$ and $cs$, necessarily more than two characters
+         long.
+       + Followed by the optional third ``chunk'' of an even number of $cs$ and
+         $ds$.
+         
+         
+    Having realized this, we are now equipped to build an automaton:
+
+    #+HEADER: :exports results
+    #+HEADER: :results latex
+    #+BEGIN_SRC latex
+      \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
+                          semithick]
+
+        \node[initial,state]   (A)              {$q_0$};
+        \node[state]           (B) [right of=A] {$q_1$};
+        \node[state]           (C) [right of=B] {$q_2$};
+        \node[state]           (D) [below of=A] {$q_3$};
+        \node[state]           (E) [right of=D] {$q_4$};
+        \node[state]           (F) [right of=E] {$q_5$};
+        \node[state,accepting] (G) [right of=F] {$q_6$};
+
+        \path (A) edge [loop above, align=center] node {
+                                          $a, A \to AA$ \\
+                                          $a, Q \to AQ$ \\
+                                          $a, \epsilon \to Q$} (A)
+                  edge              node {$b, A \to BA$}       (B)
+              (B) edge [loop above] node {$b, B \to BB$}       (B)
+                  edge              node {$c, B \to \epsilon$} (C)
+              (C) edge [loop above] node {$c, B \to \epsilon$} (C)
+                  edge              node {$c, A \to BA$}       (D)
+                  edge              node {$e, A \to \epsilon$} (F)
+              (D) edge [loop above] node {$c, B \to BB$}       (D)
+                  edge              node {$d, B \to \epsilon$} (E)
+              (E) edge [loop below] node {$d, B \to \epsilon$} (E)
+                  edge              node {$e, A \to \epsilon$} (F)
+              (F) edge [loop below] node {$e, A \to \epsilon$} (F)
+                  edge              node {$e, Q \to \epsilon$} (G);
+      \end{tikzpicture}
+    #+END_SRC
+
+    In words, this automaton can be described as:
+    1. Read an $a$ and put $Q$ on stack.
+    2. Read another $a$ and put $A$ on stack (this is to satisfy $\abs{a^k} \geq
+       2$.)
+    3. Keep reading $as$.  While you read $as$ push $A$ on the stack.
+    4. Once you read $b$, start pushing $Bs$ on the stack.
+    5. Once you read $c$, start popping $Bs$ from the stack.
+    6. Once no $Bs$ remain on the stack, if you read $c$, this means
+       $j > i$, keep reading $cs$ while pushing $Bs$ on the stack.
+       + When you encounter $d$, you need to stard popping $Bs$ from the stack.
+       + Once you read $d$, but you see $A$ on the stack, move to (8).
+    7. Otherwise, $i = j$, hence you must be reading $d$.  Skip to
+       the next state.
+    8. Now you must be reading $e$.  Keep reading $es$ as long as there
+       are $As$ on the stack.
+    9. Once you encounter $Q$ on the stack, this is also the final $e$.
+       If the input ends here, you are done!
+** Problem 6
+   Given PDA $M$ accepting language $L$ by reaching an accepting state,
+   construct PDA $N$, accepting language $L^*$.
+
+*** Answer 8
+    Informally, all we need to do is to add transitions between the accepting
+    states and the initial state of $M$ to get $N$.  There is a caveat: if we
+    accept by reaching certain state, there might be symbols on the stack that
+    will affect the way the automaton is restarded.  To take care of these
+    ``leftovers'', I suggest adding an extra state, which reads no input, and
+    discards all stack symbols until it sees the initial stack symbol.  Once it
+    sees it, the automaton can restart.
+
+    More formally, let $M=\langle Q, \Sigma, \Gamma, \delta, q_0, Z, F \rangle$,
+    where $Q$ is the finite set of states, $\Sigma$ is the input alphabet,
+    $\Gamma$ is the stack alphabet, $\delta$ is the relation $Q \times (\Sigma
+    \cup \{ \epsilon \}) \times \Gamma \times Q \times \Gamma^*$ defining
+    transitions of $M$.  $q_0$ is the initial state, $Z$ is the initial stack
+    symbol, $F \subset Q$ is the set of all accepting states.
+
+    Then, $N=\langle Q_n, \Sigma, \Gamma, \delta_n, q_0, Z, F \rangle$, where
+    $Q_n = Q \cup \{q_n\}$, $q_n$ been a state I will describe shortly.
+
+    #+HEADER: :exports results
+    #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+    #+BEGIN_SRC latex
+      \begin{align*}
+        \delta_n = \delta \cup
+        \{&(q_n, \epsilon, \gamma \in \Gamma \setminus \{Z\}, q_n, \epsilon), \\
+          &(q_n, \epsilon, Z, q_0, Z), \\
+          &(q_f \in F, \epsilon, \gamma \in \Gamma \setminus \{Z\}, q_n, \epsilon), \\
+          &(q_f \in F, \epsilon, Z, q_0, Z)\}
+      \end{align*}
+    #+END_SRC
+    
+    reading as: when in state $q_n$ reading no input, $N$ sees $\gamma$ on stack
+    it must pop $\gamma$ from stack and remain in $q_n$, otherwise, if it reads
+    $Z$ symbol on stack, it must transition to $q_0$, leaving the initial stack
+    symbol unchanged.  On top of it, for every accepting state $q_f$, there is a
+    transition on any symbol, except the initial stack symbol to $q_n$.
+    Finally, if the accepting state $q_f$ already reads the initial stack symbol
+    $Z$, it must tranzition to initial state $q_0$.
