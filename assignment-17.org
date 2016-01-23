@@ -1,0 +1,164 @@
+# -*- fill-column: 80; org-confirm-babel-evaluate: nil -*-
+
+#+TITLE:     Assignment 17, Authomata Theory
+#+AUTHOR:    Oleg Sivokon
+#+EMAIL:     olegsivokon@gmail.com
+#+DATE:      <2016-01-23 Sat>
+#+DESCRIPTION: Seventh assignment in the course 20440 Automata and Formal Languages
+#+KEYWORDS: Automata Theory, Formal Languages, Assignment
+#+LANGUAGE: en
+#+LaTeX_CLASS: article
+#+LATEX_HEADER: \usepackage{commath}
+#+LATEX_HEADER: \usepackage{pgf}
+#+LATEX_HEADER: \usepackage{tikz}
+#+LATEX_HEADER: \usetikzlibrary{shapes,backgrounds}
+#+LATEX_HEADER: \usepackage{marginnote}
+#+LATEX_HEADER: \usepackage{listings}
+#+LATEX_HEADER: \usepackage{enumerate}
+#+LATEX_HEADER: \usepackage{algpseudocode}
+#+LATEX_HEADER: \usepackage{algorithm}
+#+LATEX_HEADER: \usepackage{mathtools}
+#+LATEX_HEADER: \usetikzlibrary{arrows,automata}
+#+LATEX_HEADER: \setlength{\parskip}{16pt plus 2pt minus 2pt}
+#+LATEX_HEADER: \renewcommand{\arraystretch}{1.6}
+#+LATEX_HEADER: \DeclareMathOperator{\Neg}{Neg}
+
+#+BEGIN_SRC emacs-lisp :exports none
+  (setq org-latex-pdf-process
+        '("latexmk -pdflatex='pdflatex -shell-escape -interaction nonstopmode' -pdf -f %f")
+        org-latex-listings t
+        org-src-fontify-natively t
+        org-latex-custom-lang-environments '((maxima "maxima"))
+        org-listings-escape-inside '("(*@" . "@*)")
+        org-babel-latex-htlatex "htlatex")
+
+  (defmacro by-backend (&rest body)
+    `(progn
+       (message "org-export-current-backend: %s" org-export-current-backend)
+       (cl-case org-export-current-backend ,@body)))
+
+  ;; (defmacro by-backend (&rest body)
+  ;;   `(cl-case (when (boundp 'backend)
+  ;;               (org-export-backend-name backend))
+  ;;      ,@body))
+#+END_SRC
+
+#+RESULTS:
+: by-backend
+
+#+BEGIN_LATEX
+\definecolor{codebg}{rgb}{0.96,0.99,0.8}
+\definecolor{codestr}{rgb}{0.46,0.09,0.2}
+\lstset{%
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\scriptsize,
+  breakatwhitespace=false,
+  breaklines=false,
+  captionpos=b,
+  framexleftmargin=10pt,
+  xleftmargin=10pt,
+  framerule=0pt,
+  frame=tb,
+  keepspaces=true,
+  keywordstyle=\color{blue},
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  stringstyle=\color{codestr},
+  tabsize=2
+}
+\lstnewenvironment{maxima}{%
+  \lstset{%
+    backgroundcolor=\color{codebg},
+    escapeinside={(*@}{@*)},
+    aboveskip=20pt,
+    captionpos=b,
+    label=,
+    caption=,
+    showstringspaces=false,
+    frame=single,
+    framerule=0pt,
+    basicstyle=\ttfamily\scriptsize,
+    columns=fixed}}{}
+}
+\makeatletter
+\newcommand{\verbatimfont}[1]{\renewcommand{\verbatim@font}{\ttfamily#1}}
+\makeatother
+\verbatimfont{\small}%
+\clearpage
+#+END_LATEX
+
+* Problems
+
+** Problem 1
+   Prove that language $L = \{a^ib^{i+j}c^j \;|\; 1 \leq i \leq j\}$ is not
+   context-free.
+
+*** Answer 2
+    Suppose, for contradiction, $L$ is context-free, then, according to pumping
+    lemma, the following applies:
+    1. $p$ is the ``pumping length''.
+    2. For every word $z \in L$, $z = uvwxy$, s.t.
+    3. $\abs{vwx} \leq p$.
+    4. $\abs{vx} \geq 1$.
+    5. $uv^nwx^ny \in L$.
+       
+    Consider $p = i$, then there are five distinct ways to decompose $w$ into
+    $uvwxy$.  Of them three will decompose in a way such that both $v$ and $x$
+    are the same symbol, i.e. both $v$ and $x$ are either $a$, $b$ or $c$.
+
+    It is easy to see none of the above can be pumped: if $v = a^r$ and $x =
+    a^s$ then by pumping $a$, eventually there will be more $as$ in $z$ than
+    $cs$, which contradicts $i \leq j$.  Similarly, if we pump $bs$, eventually
+    there will be more $bs$ than $as$ and $cs$ together.  Similarly for $cs$.
+
+    Another two possible decompositions are:
+    1. $v = a^r$ and $x = b^s$.  However, again, if we pump $as$, i.e. $r \neq
+       0$, then eventually there will be more $as$ than $cs$.  And similarly for
+       $bs$.  When we pump $as$ and $bs$ together, eventually there will be more
+       $as$ than $cs$, again, contradicting $i \leq j$.
+    2. Thus the only case worth considering is where $v = b^r$ and $x = c^s$.
+       Consider the word $z = a^pb^{2p}c^p \in L$ with this decomposition.  If
+       either $r = 0$ or $s = 0$, we proceed as above, however, if $r = s \neq
+       0$, then it must be the case that for all words $z' =
+       a^pb^{p+p-r+r*i}c^{p-r+r*i}$, $z' \in L$. but it is not the case for
+       $i=0$.  Since $\abs{a^p} > \abs{c^{p-r}}$ contrary to the required $i
+       \leq j$.
+       
+       
+    These are all the possible decompositions of $z$, since neither can be
+    pumped, it must be the case that $L$ is not context-free.
+
+** Problem 2
+   Prove that context-free languages are not closed under $max$ operation.
+
+*** Answer 2
+    Recall the definition of $max$:
+    
+    #+HEADER: :exports results
+    #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+    #+BEGIN_SRC latex
+      \begin{align*}
+        max(L) = \{u \in L \;|\; \forall v \in \Sigma^*: uv \in L \implies v = \epsilon\} \;.
+      \end{align*}
+    #+END_SRC
+
+    Let's take $L = \{a^nb^mc^k \;|\; n \leq k \lor m \leq k\}$.  $L$ is context-free,
+    since we can give a grammar $L(G) = L$ as follows:
+
+    #+HEADER: :exports results
+    #+HEADER: :results (by-backend (pdf "latex") (t "raw"))
+    #+BEGIN_SRC latex
+      \begin{align*}
+        &S \to X \;|\; Y \\
+        &X \to aXC \;|\; C \\
+        &C \to bCc \;|\; Cc \;|\; bBCc \;|\; c \\
+        &B \to bB \;|\; b \\
+        &Y \to AZ \\
+        &A \to aA \;|\; \epsilon \\
+        &Z \to bZc \;|\; Q \\
+        &Q \to cQ \;|\; c \;.
+      \end{align*}
+    #+END_SRC
+
+    However, the $max(L) = \{a^nb^nc^n\}$, which is known to be non-context-free.

@@ -1,0 +1,163 @@
+% Created 2016-01-23 Sat 16:27
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\tolerance=1000
+\usepackage[utf8]{inputenc}
+\usepackage{commath}
+\usepackage{pgf}
+\usepackage{tikz}
+\usetikzlibrary{shapes,backgrounds}
+\usepackage{marginnote}
+\usepackage{listings}
+\usepackage{enumerate}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{mathtools}
+\usetikzlibrary{arrows,automata}
+\setlength{\parskip}{16pt plus 2pt minus 2pt}
+\renewcommand{\arraystretch}{1.6}
+\DeclareMathOperator{\Neg}{Neg}
+\author{Oleg Sivokon}
+\date{\textit{<2016-01-23 Sat>}}
+\title{Assignment 17, Authomata Theory}
+\hypersetup{
+  pdfkeywords={Automata Theory, Formal Languages, Assignment},
+  pdfsubject={Seventh assignment in the course 20440 Automata and Formal Languages},
+  pdfcreator={Emacs 24.5.1 (Org mode 8.2.10)}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+
+\definecolor{codebg}{rgb}{0.96,0.99,0.8}
+\definecolor{codestr}{rgb}{0.46,0.09,0.2}
+\lstset{%
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\scriptsize,
+  breakatwhitespace=false,
+  breaklines=false,
+  captionpos=b,
+  framexleftmargin=10pt,
+  xleftmargin=10pt,
+  framerule=0pt,
+  frame=tb,
+  keepspaces=true,
+  keywordstyle=\color{blue},
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  stringstyle=\color{codestr},
+  tabsize=2
+}
+\lstnewenvironment{maxima}{%
+  \lstset{%
+    backgroundcolor=\color{codebg},
+    escapeinside={(*@}{@*)},
+    aboveskip=20pt,
+    captionpos=b,
+    label=,
+    caption=,
+    showstringspaces=false,
+    frame=single,
+    framerule=0pt,
+    basicstyle=\ttfamily\scriptsize,
+    columns=fixed}}{}
+}
+\makeatletter
+\newcommand{\verbatimfont}[1]{\renewcommand{\verbatim@font}{\ttfamily#1}}
+\makeatother
+\verbatimfont{\small}%
+\clearpage
+
+\section{Problems}
+\label{sec-1}
+
+\subsection{Problem 1}
+\label{sec-1-1}
+Prove that language $L = \{a^ib^{i+j}c^j \;|\; 1 \leq i \leq j\}$ is not
+context-free.
+
+\subsubsection{Answer 2}
+\label{sec-1-1-1}
+Suppose, for contradiction, $L$ is context-free, then, according to pumping
+lemma, the following applies:
+\begin{enumerate}
+\item $p$ is the ``pumping length''.
+\item For every word $z \in L$, $z = uvwxy$, s.t.
+\item $\abs{vwx} \leq p$.
+\item $\abs{vx} \geq 1$.
+\item $uv^nwx^ny \in L$.
+\end{enumerate}
+
+Consider $p = i$, then there are five distinct ways to decompose $w$ into
+$uvwxy$.  Of them three will decompose in a way such that both $v$ and $x$
+are the same symbol, i.e. both $v$ and $x$ are either $a$, $b$ or $c$.
+
+It is easy to see none of the above can be pumped: if $v = a^r$ and $x =
+    a^s$ then by pumping $a$, eventually there will be more $as$ in $z$ than
+$cs$, which contradicts $i \leq j$.  Similarly, if we pump $bs$, eventually
+there will be more $bs$ than $as$ and $cs$ together.  Similarly for $cs$.
+
+Another two possible decompositions are:
+\begin{enumerate}
+\item $v = a^r$ and $x = b^s$.  However, again, if we pump $as$, i.e. $r \neq
+       0$, then eventually there will be more $as$ than $cs$.  And similarly for
+$bs$.  When we pump $as$ and $bs$ together, eventually there will be more
+$as$ than $cs$, again, contradicting $i \leq j$.
+\item Thus the only case worth considering is where $v = b^r$ and $x = c^s$.
+Consider the word $z = a^pb^{2p}c^p \in L$ with this decomposition.  If
+either $r = 0$ or $s = 0$, we proceed as above, however, if $r = s \neq
+       0$, then it must be the case that for all words $z' =
+       a^pb^{p+p-r+r*i}c^{p-r+r*i}$, $z' \in L$. but it is not the case for
+$i=0$.  Since $\abs{a^p} > \abs{c^{p-r}}$ contrary to the required $i
+       \leq j$.
+\end{enumerate}
+
+
+These are all the possible decompositions of $z$, since neither can be
+pumped, it must be the case that $L$ is not context-free.
+
+\subsection{Problem 2}
+\label{sec-1-2}
+Prove that context-free languages are not closed under $max$ operation.
+
+\subsubsection{Answer 2}
+\label{sec-1-2-1}
+Recall the definition of $max$:
+
+\begin{align*}
+  max(L) = \{u \in L \;|\; \forall v \in \Sigma^*: uv \in L \implies v = \epsilon\} \;.
+\end{align*}
+
+Let's take $L = \{a^nb^mc^k \;|\; n \leq k \lor m \leq k\}$.  $L$ is context-free,
+since we can give a grammar $L(G) = L$ as follows:
+
+\begin{align*}
+  &S \to X \;|\; Y \\
+  &X \to aXC \;|\; C \\
+  &C \to bCc \;|\; Cc \;|\; bBCc \;|\; c \\
+  &B \to bB \;|\; b \\
+  &Y \to AZ \\
+  &A \to aA \;|\; \epsilon \\
+  &Z \to bZc \;|\; Q \\
+  &Q \to cQ \;|\; c \;.
+\end{align*}
+
+However, the $max(L) = \{a^nb^nc^n\}$, which is known to be non-context-free.
+% Emacs 24.5.1 (Org mode 8.2.10)
+\end{document}

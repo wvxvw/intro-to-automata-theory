@@ -33,9 +33,14 @@
         org-babel-latex-htlatex "htlatex")
 
   (defmacro by-backend (&rest body)
-    `(cl-case (when (boundp 'backend)
-                (org-export-backend-name backend))
-       ,@body))
+    `(progn
+       (message "org-export-current-backend: %s" org-export-current-backend)
+       (cl-case org-export-current-backend ,@body)))
+
+  ;; (defmacro by-backend (&rest body)
+  ;;   `(cl-case (when (boundp 'backend)
+  ;;               (org-export-backend-name backend))
+  ;;      ,@body))
 #+END_SRC
 
 #+RESULTS:
@@ -391,7 +396,7 @@
     Having realized this, we are now equipped to build an automaton:
 
     #+HEADER: :exports results
-    #+HEADER: :results latex
+    #+HEADER: :results (by-backend (latex "latex") (t "raw"))
     #+BEGIN_SRC latex
       \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
                           semithick]
