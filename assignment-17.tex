@@ -1,4 +1,4 @@
-% Created 2016-01-23 Sat 16:27
+% Created 2016-01-29 Fri 22:35
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -31,6 +31,7 @@
 \setlength{\parskip}{16pt plus 2pt minus 2pt}
 \renewcommand{\arraystretch}{1.6}
 \DeclareMathOperator{\Neg}{Neg}
+\newcommand{\for}{\text{for }}
 \author{Oleg Sivokon}
 \date{\textit{<2016-01-23 Sat>}}
 \title{Assignment 17, Authomata Theory}
@@ -145,7 +146,7 @@ Recall the definition of $max$:
 \end{align*}
 
 Let's take $L = \{a^nb^mc^k \;|\; n \leq k \lor m \leq k\}$.  $L$ is context-free,
-since we can give a grammar $L(G) = L$ as follows:
+since we can give a context-free grammar $L(G) = L$ as follows:
 
 \begin{align*}
   &S \to X \;|\; Y \\
@@ -159,5 +160,113 @@ since we can give a grammar $L(G) = L$ as follows:
 \end{align*}
 
 However, the $max(L) = \{a^nb^nc^n\}$, which is known to be non-context-free.
+
+\subsection{Problem 3}
+\label{sec-1-3}
+Prove $L = \{a^ib^2c^j \;|\; i = 2j\}$ is constext free using closure
+properties and some language from assignment 16.
+
+\subsubsection{Answer 3}
+\label{sec-1-3-1}
+Recall that we proved language $M = \{a^kb^ic^jd^{j-i}e^k \;|\; 1 \leq i
+    \leq j, k \geq 2\}$ to be context-free.  We can define homomorophism:
+
+\begin{equation*}
+  h(x) = \begin{cases}
+    aa &\for x=a \\
+    b &\for x=b \lor x=c \lor x=d \\
+    c &\for x=e
+  \end{cases} \;.
+\end{equation*}
+
+Now, $M' = h(M) = \{a^{2k}b^{i+j+j-i}c^k\}$, where $2j$ is any even integer,
+thus could be rewritten as $\{a^{2k}b^{2j}c^k\}$.  Due to closure of
+context-free languages under homomorphism, $M'$ is context-free.
+
+Next, we can intersect $M'$ with a regular language $a^*b^2c^*$ to get $L$.
+Since context-free languages are closed under intersection with regular
+languages we proved that $L$ is context-free.
+
+\subsection{Problem 4}
+\label{sec-1-4}
+Prove or disprove each of the following statements:
+\begin{enumerate}
+\item $L$ is a irregular context-free language.  $G$ is a context-sensitive
+language.  $L \cap G$ is not context-free.
+\item $L_1$ and $L_2$ are irregular context-free languages s.t. $L_1 \cap L_2
+      \neq \emptyset$.  $L_1 \cap L_2$ is irregular context-free language.
+\item $L$ is a regular language over $\Sigma$.  $G$ is a context-sensitive
+language.  Define substitution $f$ s.t. $\forall \sigma \in \Sigma:
+      f(\sigma) = G$.  $f(L)$ is context-sensitive.
+\end{enumerate}
+
+\subsubsection{Anwser 4}
+\label{sec-1-4-1}
+An interesection of a context-free and a context-sensitive languages may be
+context-free.  For instance, $\{a^nb^n\} \cap \{a^nb^nc^n\} = \{a^nb^n\}$,
+where $n \geq 0$ is context-free.
+
+\subsubsection{Answer 5}
+\label{sec-1-4-2}
+An interesection of two context-free languages isn't necessarily irregular.
+For instance $\{a^nb^n\} \cap \{a^nc^n\} = \{a^n\}$ where $n \geq 0$ is
+regular.
+
+\subsubsection{Answer 6}
+\label{sec-1-4-3}
+The language $L = \{\epsilon\}$ is regular.  $f(L) = L$ since no
+substitution took place, hence this claim is false.
+
+\subsection{Problem 5}
+\label{sec-1-5}
+Let $L$ be a context-free language over the alphabet $\Sigma = \{a,b,c,\dots
+   z\}$.  Prove that $L'$ is also context-free, when defined as follows:
+
+\begin{align*}
+  L' = \{w \;|\; \abs{w} \equiv 0 \pmod{2}
+                 \;\land\; \abs{w} \geq 4 
+                 \;\land\; \textbf{Sub}(w)\}
+\end{align*}
+
+
+Where $\textbf{Sub}(w)$ is true whenever
+
+\begin{equation*}
+  w = \begin{cases}
+    x\textbf{a}y\textbf{z}z &\for xpyqz \in L 
+                             \land p \neq \textbf{a}
+                             \land q \neq \textbf{z} \\
+
+    x\textbf{z}y\textbf{a}z &\for xpyqz \in L 
+                             \land p \neq \textbf{z}
+                             \land q \neq \textbf{a}
+  \end{cases} \\
+  \abs{p} = \abs{q} = 1
+\end{equation*}
+
+\subsubsection{Answer 7}
+\label{sec-1-5-1}
+\begin{enumerate}
+\item Provided $L$ is regular, we can bring its grammar $G$ to Greibach normal
+form.
+\item Now, for every rule of the form $A \to xA_1A_2A_3\dots A_n$ we introduce
+new rules: $A \to aA'_1A'_2A'_3\dots A'_n$ whenever $x \neq a$ and 
+$A' \to zA''_1A''_2A''_3\dots A''_n$ whenever $x \neq z$.
+\item We replace the rules of the form $A \to x$ with $A'' \to x$.
+\end{enumerate}
+
+
+The resulting grammar $G'$ will nondeterministically substitute $a$ for some
+terminal, which does not equal $a$ and $z$ for some terminal which does not
+equal $z$.  It can only terminate the derivation when both substitutions
+took place.  Using the same technique we can construct grammar $G''$ which
+first replaces $z$ and then $a$.  The union of $G'$ and $G''$ (still a
+context-free grammar, since context-free languages are closed under union)
+will take care of $\textbf{Sub}(w)$ condition.
+
+Now, we can take $G''' = (G' \cup G'') \cap R$, where $R = \{r \;|\; r \in
+    \Sigma^+ \land \abs{r} \geq 4\}$.  Since $R$ is regular, and intersection of
+context-free and regular languages is known to be context-free, $G'''$ must
+be context-free.  This completes the proof.
 % Emacs 24.5.1 (Org mode 8.2.10)
 \end{document}
